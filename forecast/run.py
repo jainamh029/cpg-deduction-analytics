@@ -7,22 +7,37 @@ backtest_by_horizon.csv, forward_forecast.csv. Also writes forecast/RESULTS.md.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import duckdb
+import numpy as np
 import pandas as pd
 
 from data_gen.load import DEFAULT_PATH
 
-from .model import FIRST_ORIGIN, HORIZON, MODELS, backtest, forward_forecast, mape, score, wape
+from .model import (
+    FIRST_ORIGIN,
+    HORIZON,
+    MODELS,
+    backtest,
+    compare_models,
+    forward_forecast,
+    interval_coverage,
+    mape,
+    score,
+    small_denominator_report,
+    smape,
+    wape,
+)
 
 ROOT = Path(__file__).resolve().parent
 RESULTS_DIR = ROOT / "results"
 
 FORECASTS_COLUMNS = [
-    "retailer_id", "origin_month", "target_month", "horizon", "actual", *MODELS,
+    "retailer_id", "origin_month", "target_month", "horizon", "actual", "mase_scale", *MODELS,
 ]  # fmt: skip
-MAPE_COLUMNS = ["retailer_id", "model", "mape", "wape", "n_forecasts"]
+MAPE_COLUMNS = ["retailer_id", "model", "mape", "smape", "mase", "wape", "n_forecasts"]
 FORWARD_COLUMNS = [
     "retailer_id", "month", "seasonal_naive", "holt_winters", "hw_p10", "hw_p90",
 ]  # fmt: skip
@@ -48,6 +63,10 @@ def _short(path: Path) -> Path:
     return path.relative_to(ROOT.parent) if path.is_relative_to(ROOT.parent) else path
 
 
+def mase_pooled(frame: pd.DataFrame, model: str) -> float:
+    return float((np.abs(frame["actual"] - frame[model]) / frame["mase_scale"]).mean())
+
+
 def by_horizon(forecasts: pd.DataFrame) -> pd.DataFrame:
     complete = forecasts.dropna(subset=list(MODELS))
     rows = []
@@ -60,7 +79,9 @@ def by_horizon(forecasts: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def write_report(forecasts: pd.DataFrame, scores: pd.DataFrame, horizons: pd.DataFrame, path: Path):  # noqa: E501
+def write_report(
+    forecasts: pd.DataFrame, scores: pd.DataFrame, horizons: pd.DataFrame, path: Path, extra: dict
+):
     wide = scores.pivot(index="retailer_id", columns="model", values="mape")
     complete = forecasts.dropna(subset=list(MODELS))
     pooled = {m: mape(complete["actual"].to_numpy(), complete[m].to_numpy()) for m in MODELS}
@@ -101,6 +122,55 @@ def write_report(forecasts: pd.DataFrame, scores: pd.DataFrame, horizons: pd.Dat
     ]
     for h, grp in horizons.pivot(index="horizon", columns="model", values="mape").iterrows():
         lines.append(f"| {h} | {grp['seasonal_naive']:.1%} | {grp['holt_winters']:.1%} |")
+    comp, cov, small = extra["comparison"], extra["coverage"], extra["small_denominators"]
+    verdict = (
+        "a statistical tie"
+        if comp["boot_ci_low"] <= 0 <= comp["boot_ci_high"] and comp["dm_hln_p_value"] > 0.05
+        else "a measurable difference"
+    )
+    lines += [
+        "",
+        "## Is Holt-Winters really better than the baseline?",
+        "",
+        f"Resampling the {comp['n_origins']} forecast origins (not the points: points within an origin are correlated), "
+        f"the pooled MAPE advantage of Holt-Winters is {comp['mean_diff_mape'] * 100:.2f} points "
+        f"(bootstrap 95% CI {comp['boot_ci_low'] * 100:.2f} to {comp['boot_ci_high'] * 100:.2f}; bootstrap p = {comp['boot_p_value']:.2f}).",
+        f"Diebold-Mariano with the Harvey-Leybourne-Newbold correction: t = {comp['dm_hln_statistic']:.2f}, p = {comp['dm_hln_p_value']:.2f} "
+        f"({comp['n_origins']} origins, so low power). Holt-Winters is better at {comp['origins_hw_better']} of {comp['n_origins']} origins "
+        f"and for {comp['retailers_hw_better']} of {comp['retailers']} retailers (sign test p = {comp['sign_test_p_value']:.2f}).",
+        f"**Verdict: {verdict}.**",
+        "",
+        "## Error metrics beyond MAPE (pooled)",
+        "",
+        "| Model | MAPE | sMAPE | MASE | WAPE |",
+        "|---|---|---|---|---|",
+    ]
+    for m in MODELS:
+        a, f_ = complete["actual"].to_numpy(), complete[m].to_numpy()
+        lines.append(
+            f"| {m} | {pooled[m]:.1%} | {smape(a, f_):.1%} | {mase_pooled(complete, m):.2f} | {pooled_w[m]:.1%} |"
+        )
+    lines += [
+        "",
+        "MASE is scaled by the seasonal-naive in-sample error of each fold, so 1.0 means 'no better than the "
+        "baseline would have been on its own training data'.",
+        "",
+        "## MAPE and small denominators",
+        "",
+        f"Seasonal-naive errors for the 3 smallest retailers (by mean monthly deductions): MAPE {small['smallest_3']['mape']:.1%}, "
+        f"sMAPE {small['smallest_3']['smape']:.1%}, WAPE {small['smallest_3']['wape']:.1%}; for the 3 largest: MAPE "
+        f"{small['largest_3']['mape']:.1%}, sMAPE {small['largest_3']['smape']:.1%}, WAPE {small['largest_3']['wape']:.1%}. "
+        f"Correlation between log(actual) and absolute percentage error: {small['corr_log_actual_vs_ape']:.2f}. "
+        "No retailer-month is near zero here, so MAPE does not explode, but small retailers' percentage errors are "
+        "much larger than large retailers'. WAPE and MASE weight errors by size (and are more relevant to a dollar "
+        "forecast); MAPE is shown because the brief asked for it.",
+        "",
+        "## Prediction-interval coverage",
+        "",
+        f"The dashboard band is the {cov['nominal']:.0%} band of pooled actual/forecast ratios. Coverage on the same backtest "
+        f"it was fitted on: {cov['in_sample_coverage']:.1%} (about nominal by construction). Honest out-of-sample coverage, with each "
+        f"origin's band built only from earlier origins ({cov['out_of_sample_points']} points): **{cov['out_of_sample_coverage']:.1%}**.",
+    ]
     lines += ["", "## Where the model fails or loses", ""]
     if len(worse):
         names = ", ".join(str(r) for r in worse.index)
@@ -153,7 +223,13 @@ def main(
     scores[MAPE_COLUMNS].to_csv(out_dir / "backtest_mape.csv", index=False)
     horizons.to_csv(out_dir / "backtest_by_horizon.csv", index=False)
     forward[FORWARD_COLUMNS].to_csv(out_dir / "forward_forecast.csv", index=False)
-    write_report(forecasts, scores, horizons, report_path)
+    extra = {
+        "comparison": compare_models(forecasts),
+        "coverage": interval_coverage(forecasts),
+        "small_denominators": small_denominator_report(forecasts),
+    }
+    (out_dir / "comparison.json").write_text(json.dumps(extra, indent=1) + "\n")
+    write_report(forecasts, scores, horizons, report_path, extra)
     pooled = {
         m: mape(forecasts.dropna()["actual"].to_numpy(), forecasts.dropna()[m].to_numpy())
         for m in MODELS

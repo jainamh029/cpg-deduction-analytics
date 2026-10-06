@@ -19,6 +19,8 @@ from .config import (
     CATEGORIES,
     CHANNELS,
     MONTH_SEASONALITY,
+    NULL_DISPUTE_PROB,
+    NULL_WIN_PROB,
     PROBLEM_SKUS,
     PROMO_TYPES,
     REASON_PARAMS,
@@ -27,6 +29,7 @@ from .config import (
     RETAILER_ANOMALY,
     RETAILER_B,
     RETAILER_SHARES,
+    WINNABILITY_SD,
     Config,
 )
 
@@ -50,7 +53,16 @@ UNDISPUTED_STALE_DAYS = 90
 
 
 def _streams(seed: int) -> dict[str, np.random.Generator]:
-    names = ("skus", "invoices", "lines", "deductions", "disputes", "payments", "promotions")
+    names = (
+        "skus",
+        "invoices",
+        "lines",
+        "deductions",
+        "disputes",
+        "payments",
+        "promotions",
+        "bias",
+    )
     children = np.random.SeedSequence(seed).spawn(len(names))
     return {n: np.random.default_rng(c) for n, c in zip(names, children, strict=True)}
 
@@ -118,8 +130,9 @@ def _make_invoices(cfg: Config, rngs: dict, skus: pd.DataFrame) -> _Invoices:
     ret_parts, date_parts, gross_parts, k_parts, sku_parts, line_parts = [], [], [], [], [], []
     offset = 0
     for t, ms in enumerate(months):
-        growth = (1 + cfg.yoy_growth) ** ((t - 17.5) / 12)
-        revenue = cfg.annual_revenue / 12 * MONTH_SEASONALITY[ms.month - 1] * growth
+        growth = (1 + (cfg.yoy_growth if cfg.planted else 0.0)) ** ((t - 17.5) / 12)
+        season = MONTH_SEASONALITY[ms.month - 1] if cfg.planted else 1.0
+        revenue = cfg.annual_revenue / 12 * season * growth
         revenue *= rng_inv.lognormal(0, 0.03) * cfg.revenue_scale
         counts = rng_inv.poisson(revenue * shares / mean_invoice)
         ret = np.repeat(np.arange(1, len(shares) + 1), counts)
@@ -130,7 +143,8 @@ def _make_invoices(cfg: Config, rngs: dict, skus: pd.DataFrame) -> _Invoices:
 
         k = rng_ln.integers(6, LINES_PER_INVOICE_MAX + 1, n)
         keys = np.log(rng_ln.random((n, n_sku))) / popularity
-        has_problem = (ret == RETAILER_A) & (rng_ln.random(n) < PROBLEM_SKU_ON_INVOICE_PROB)
+        problem_prob = PROBLEM_SKU_ON_INVOICE_PROB if cfg.planted else 0.0
+        has_problem = (ret == RETAILER_A) & (rng_ln.random(n) < problem_prob)
         keys[has_problem, PROBLEM_SKUS[0] - 1] = 1.0  # force-include: larger than any log key
         keys[has_problem, PROBLEM_SKUS[1] - 1] = 2.0
         top = np.argsort(-keys, axis=1)[:, :LINES_PER_INVOICE_MAX]
@@ -203,8 +217,12 @@ def _make_deductions(cfg: Config, rng: np.random.Generator, inv: _Invoices) -> p
     q4 = months >= 10
     effect = rng.lognormal(0, 0.2, (n_ret, len(REASONS)))
     effect[:, REASONS.index("compliance_fine")] = rng.lognormal(0, 0.25, n_ret)
-    effect[RETAILER_A - 1, REASONS.index("compliance_fine")] = rng.lognormal(np.log(3.0), 0.12)
+    a_effect = rng.lognormal(np.log(3.0), 0.12)
+    if cfg.planted:
+        effect[RETAILER_A - 1, REASONS.index("compliance_fine")] = a_effect
     promo_mult = rng.lognormal(np.log(2.4), 0.25, (n_ret, 3))
+    if not cfg.planted:
+        promo_mult = np.ones((n_ret, 3))
     anomaly_month = (
         (pd.DatetimeIndex(inv.date).to_period("M") == pd.Period(ANOMALY_INVOICE_MONTH, "M"))
         & (inv.ret == RETAILER_ANOMALY)
@@ -218,7 +236,7 @@ def _make_deductions(cfg: Config, rng: np.random.Generator, inv: _Invoices) -> p
         if reason == "promo":
             p = np.where(q4, p * promo_mult[inv.ret - 1, np.clip(year_idx, 0, 2)], p)
         if reason == "shortage":
-            p = np.where(anomaly_month, p * ANOMALY_MULTIPLIER, p)
+            p = np.where(anomaly_month, p * (ANOMALY_MULTIPLIER if cfg.planted else 1.0), p)
         hit = np.nonzero(rng.random(inv.ret.size) < np.clip(p, 0, 0.95))[0]
         z = rng.standard_normal(hit.size)
         if "flat" in par:
@@ -232,7 +250,7 @@ def _make_deductions(cfg: Config, rng: np.random.Generator, inv: _Invoices) -> p
             pick_problem = (
                 (inv.ret[hit] == RETAILER_A)
                 & problem_pair[hit]
-                & (rng.random(hit.size) < FINE_PROBLEM_SKU_PROB)
+                & (rng.random(hit.size) < (FINE_PROBLEM_SKU_PROB if cfg.planted else 0.0))
             )
             pos = np.where(pick_problem, rng.integers(0, 2, hit.size), pos)
         sku = inv.skus[hit, pos].astype(float)
@@ -275,18 +293,28 @@ def _make_deductions(cfg: Config, rng: np.random.Generator, inv: _Invoices) -> p
     )
 
 
-def _make_disputes(cfg: Config, rng: np.random.Generator, ded: pd.DataFrame) -> tuple:
-    """Return (disputes, deductions-with-final-status)."""
+def _make_disputes(
+    cfg: Config, rng: np.random.Generator, ded: pd.DataFrame, bias_rng: np.random.Generator
+) -> tuple:
+    """Return (disputes, deductions-with-final-status, true win probability per deduction)."""
     n = len(ded)
     n_ret = len(RETAILER_SHARES)
     reason_idx = ded["reason_code"].map({r: i for i, r in enumerate(REASONS)}).to_numpy()
     base_d = np.array([REASON_PARAMS[r]["dispute"] for r in REASONS])
     base_w = np.array([REASON_PARAMS[r]["win"] for r in REASONS])
+    if not cfg.planted:
+        base_d, base_w = (
+            np.full(len(REASONS), NULL_DISPUTE_PROB),
+            np.full(len(REASONS), NULL_WIN_PROB),
+        )
     ret = ded["retailer_id"].to_numpy() - 1
     dispute_jitter = rng.lognormal(0, 0.15, (n_ret, len(REASONS)))
     win_jitter = rng.normal(0, 0.04, n_ret)
 
-    p_dispute = np.clip(base_d[reason_idx] * dispute_jitter[ret, reason_idx], 0, 0.9)
+    winnability = bias_rng.standard_normal(n) if cfg.dispute_bias is not None else np.zeros(n)
+    selection = 0.0 if cfg.dispute_bias is None else cfg.dispute_bias
+    p_dispute = base_d[reason_idx] * dispute_jitter[ret, reason_idx]
+    p_dispute = np.clip(p_dispute * np.exp(selection * winnability - selection**2 / 2), 0, 0.9)
     disputed = rng.random(n) < p_dispute
     filing_lag = np.clip(np.round(rng.gamma(2.0, 12.0, n)) + 3, 1, 120).astype(int)
     ded_date = ded["deduction_date"].to_numpy()
@@ -296,7 +324,10 @@ def _make_disputes(cfg: Config, rng: np.random.Generator, ded: pd.DataFrame) -> 
     lag_mult = np.select(
         [filing_lag <= 14, filing_lag <= 30, filing_lag <= 60], [1.10, 1.0, 0.85], 0.65
     )
-    p_win = np.clip(base_w[reason_idx] * lag_mult + win_jitter[ret], 0.02, 0.97)
+    if not cfg.planted:
+        lag_mult = np.ones(n)
+    spread = WINNABILITY_SD * winnability if cfg.dispute_bias is not None else 0.0
+    p_win = np.clip(base_w[reason_idx] * lag_mult + win_jitter[ret] + spread, 0.02, 0.97)
     win = rng.random(n) < p_win
     partial = win & (rng.random(n) < 0.30)
     resolve_days = np.round(rng.gamma(3.0, 12.0, n)).astype(int) + 7
@@ -334,7 +365,7 @@ def _make_disputes(cfg: Config, rng: np.random.Generator, ded: pd.DataFrame) -> 
         [outcome == "pending", outcome == "lost"], ["disputed", "accepted"], "recovered"
     )
     status = np.where(disputed, disputed_status, undisputed_status)
-    return disputes, ded.assign(status=status)
+    return disputes, ded.assign(status=status), p_win
 
 
 def _make_payments(cfg: Config, rng: np.random.Generator, inv: _Invoices, ded: pd.DataFrame):
@@ -348,7 +379,7 @@ def _make_payments(cfg: Config, rng: np.random.Generator, inv: _Invoices, ded: p
     late = np.array(RETAILER_LATE_DAYS)[inv.ret - 1] + rng.normal(0, 4, n)
     days_in = (inv.date - _d64(B_LAG_DRIFT_START)).astype(int)
     drift = B_LAG_DRIFT_TOTAL * np.clip(days_in / B_LAG_DRIFT_DAYS, 0, 1)
-    late = late + np.where(inv.ret == RETAILER_B, drift, 0)
+    late = late + np.where((inv.ret == RETAILER_B) & cfg.planted, drift, 0)
     paid_date = inv.date + np.maximum(1, np.round(terms + late)).astype(int).astype(
         "timedelta64[D]"
     )
@@ -397,17 +428,18 @@ def _make_promotions(cfg: Config, rng: np.random.Generator) -> pd.DataFrame:
     return promos
 
 
-def generate(cfg: Config | None = None) -> Tables:
-    """Generate the clean dataset. Same config -> identical tables."""
+def generate_with_truth(cfg: Config | None = None) -> tuple[Tables, pd.DataFrame]:
+    """Clean tables plus an ORACLE table (deduction_id, p_win_true): the probability each deduction would win
+    if disputed. The oracle is for audits only; it is never loaded into the warehouse."""
     cfg = cfg or Config()
     rngs = _streams(cfg.seed)
     retailers = make_retailers()
     skus = make_skus(cfg, rngs["skus"])
     inv = _make_invoices(cfg, rngs, skus)
     deductions = _make_deductions(cfg, rngs["deductions"], inv)
-    disputes, deductions = _make_disputes(cfg, rngs["disputes"], deductions)
+    disputes, deductions, p_win = _make_disputes(cfg, rngs["disputes"], deductions, rngs["bias"])
     payments = _make_payments(cfg, rngs["payments"], inv, deductions)
-    return {
+    tables = {
         "retailers": retailers,
         "skus": skus,
         "invoices": _invoice_frame(inv),
@@ -417,6 +449,15 @@ def generate(cfg: Config | None = None) -> Tables:
         "disputes": disputes,
         "promotions": _make_promotions(cfg, rngs["promotions"]),
     }
+    truth = pd.DataFrame(
+        {"deduction_id": deductions["deduction_id"].to_numpy(), "p_win_true": p_win}
+    )
+    return tables, truth
+
+
+def generate(cfg: Config | None = None) -> Tables:
+    """Generate the clean dataset. Same config -> identical tables."""
+    return generate_with_truth(cfg)[0]
 
 
 def table_hashes(tables: Tables) -> dict[str, str]:

@@ -15,6 +15,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from scipy import stats
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
 SEASON = 12
@@ -76,10 +77,26 @@ def backtest(
                         "target_month": test.index[h],
                         "horizon": h + 1,
                         "actual": float(test[retailer].iloc[h]),
+                        "mase_scale": seasonal_naive_scale(history),
                         **{name: float(f[h]) for name, f in forecasts.items()},
                     }
                 )
     return pd.DataFrame(rows)
+
+
+def seasonal_naive_scale(history: np.ndarray) -> float:
+    """MASE scale: mean absolute in-sample error of the seasonal-naive method on the training window."""
+    return float(np.mean(np.abs(history[SEASON:] - history[:-SEASON])))
+
+
+def smape(actual: np.ndarray, forecast: np.ndarray) -> float:
+    """Symmetric MAPE: mean of 2|a - f| / (|a| + |f|); bounded, so tiny actuals cannot explode it."""
+    return float(np.mean(2 * np.abs(actual - forecast) / (np.abs(actual) + np.abs(forecast))))
+
+
+def mase(actual: np.ndarray, forecast: np.ndarray, scale: np.ndarray) -> float:
+    """Mean absolute scaled error: |a - f| divided by the seasonal-naive in-sample MAE of its fold."""
+    return float(np.mean(np.abs(actual - forecast) / scale))
 
 
 def mape(actual: np.ndarray, forecast: np.ndarray) -> float:
@@ -104,6 +121,8 @@ def score(forecasts: pd.DataFrame) -> pd.DataFrame:
                     "retailer_id": retailer,
                     "model": model,
                     "mape": mape(a, f),
+                    "smape": smape(a, f),
+                    "mase": mase(a, f, group["mase_scale"].to_numpy()),
                     "wape": wape(a, f),
                     "n_forecasts": len(group),
                 }
@@ -138,3 +157,102 @@ def forward_forecast(monthly: pd.DataFrame, backtested: pd.DataFrame, horizon: i
                 }
             )
     return pd.DataFrame(rows)
+
+
+def origin_losses(forecasts: pd.DataFrame) -> pd.DataFrame:
+    """Mean absolute percentage error per origin and model, pooled over retailers and horizons."""
+    complete = forecasts.dropna(subset=list(MODELS))
+    losses = {m: np.abs(complete["actual"] - complete[m]) / complete["actual"] for m in MODELS}
+    frame = pd.DataFrame({"origin_month": complete["origin_month"], **losses})
+    return frame.groupby("origin_month").mean()
+
+
+def compare_models(forecasts: pd.DataFrame, n_boot: int = 10_000, seed: int = 20260101) -> dict:
+    """Is Holt-Winters better than seasonal naive? Evidence from the backtest, resampling ORIGINS.
+
+    d_o = pooled MAPE(naive) - pooled MAPE(Holt-Winters) at origin o (positive = Holt-Winters better).
+    Reports a Diebold-Mariano style t statistic with the Harvey-Leybourne-Newbold small-sample correction
+    (horizon h = 3), a bootstrap over origins, and a sign test across retailers.
+    """
+    losses = origin_losses(forecasts)
+    d = (losses["seasonal_naive"] - losses["holt_winters"]).to_numpy()
+    n, h = len(d), HORIZON
+    spread = d.std(ddof=1)
+    if spread == 0:  # identical loss at every origin: no evidence of any difference
+        dm_hln, p_dm = 0.0, 1.0
+    else:
+        dm = d.mean() / (spread / np.sqrt(n))
+        dm_hln = dm * np.sqrt((n + 1 - 2 * h + h * (h - 1) / n) / n)
+        p_dm = float(2 * stats.t.sf(abs(dm_hln), df=n - 1))
+    rng = np.random.default_rng(seed)
+    boot = rng.choice(d, size=(n_boot, n), replace=True).mean(axis=1)
+    per_retailer = score(forecasts).pivot(index="retailer_id", columns="model", values="mape")
+    wins = int((per_retailer["holt_winters"] < per_retailer["seasonal_naive"]).sum())
+    return {
+        "n_origins": n,
+        "mean_diff_mape": float(d.mean()),  # naive - HW, in MAPE points (0.003 = 0.3 pts)
+        "dm_hln_statistic": float(dm_hln),
+        "dm_hln_p_value": p_dm,
+        "boot_ci_low": float(np.percentile(boot, 2.5)),
+        "boot_ci_high": float(np.percentile(boot, 97.5)),
+        "boot_p_value": float(2 * min((boot <= 0).mean(), (boot >= 0).mean())),
+        "origins_hw_better": int((d > 0).sum()),
+        "retailers_hw_better": wins,
+        "retailers": int(len(per_retailer)),
+        "sign_test_p_value": float(stats.binomtest(wins, len(per_retailer), 0.5).pvalue),
+    }
+
+
+def interval_coverage(forecasts: pd.DataFrame, nominal: float = 0.8) -> dict:
+    """Empirical coverage of the actual/forecast-ratio band used by the dashboard.
+
+    in_sample: quantiles from ALL backtest ratios (what forward_forecast uses), so coverage is ~nominal by
+    construction. out_of_sample: for each origin, quantiles come only from EARLIER origins; coverage is measured
+    on that origin's points (the honest number).
+    """
+    complete = forecasts.dropna(subset=["holt_winters"]).assign(
+        ratio=lambda d: d["actual"] / d["holt_winters"]
+    )
+    lo_q, hi_q = (1 - nominal) / 2, 1 - (1 - nominal) / 2
+    q = complete.groupby("horizon")["ratio"].quantile([lo_q, hi_q]).unstack()
+    inside = (complete["ratio"] >= complete["horizon"].map(q[lo_q])) & (
+        complete["ratio"] <= complete["horizon"].map(q[hi_q])
+    )
+    hits, total = 0, 0
+    origins_sorted = sorted(complete["origin_month"].unique())
+    for origin in origins_sorted[1:]:
+        past, now = (
+            complete[complete["origin_month"] < origin],
+            complete[complete["origin_month"] == origin],
+        )
+        bounds = past.groupby("horizon")["ratio"].quantile([lo_q, hi_q]).unstack()
+        covered = (now["ratio"] >= now["horizon"].map(bounds[lo_q])) & (
+            now["ratio"] <= now["horizon"].map(bounds[hi_q])
+        )
+        hits, total = hits + int(covered.sum()), total + len(now)
+    return {
+        "nominal": nominal,
+        "in_sample_coverage": float(inside.mean()),
+        "out_of_sample_coverage": hits / total,
+        "out_of_sample_points": total,
+    }
+
+
+def small_denominator_report(forecasts: pd.DataFrame) -> dict:
+    """How much do small series dominate MAPE? Compares MAPE and WAPE for the smallest and largest retailers."""
+    complete = forecasts.dropna(subset=list(MODELS))
+    by = complete.groupby("retailer_id")
+    size = by["actual"].mean().sort_values()
+    rows = {}
+    for label, ids in (("smallest_3", size.index[:3]), ("largest_3", size.index[-3:])):
+        sub = complete[complete["retailer_id"].isin(ids)]
+        a, f = sub["actual"].to_numpy(), sub["seasonal_naive"].to_numpy()
+        rows[label] = {
+            "retailers": [int(i) for i in ids],
+            "mape": mape(a, f),
+            "wape": wape(a, f),
+            "smape": smape(a, f),
+        }
+    ape = np.abs(complete["actual"] - complete["seasonal_naive"]) / complete["actual"]
+    rows["corr_log_actual_vs_ape"] = float(np.corrcoef(np.log(complete["actual"]), ape)[0, 1])
+    return rows

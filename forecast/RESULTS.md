@@ -36,6 +36,29 @@ after 24 training months, horizon 3 months, 7 origins.
 | 2 | 18.9% | 18.7% |
 | 3 | 20.2% | 18.6% |
 
+## Is Holt-Winters really better than the baseline?
+
+Resampling the 7 forecast origins (not the points: points within an origin are correlated), the pooled MAPE advantage of Holt-Winters is 0.21 points (bootstrap 95% CI -2.22 to 2.74; bootstrap p = 0.89).
+Diebold-Mariano with the Harvey-Leybourne-Newbold correction: t = 0.10, p = 0.92 (7 origins, so low power). Holt-Winters is better at 3 of 7 origins and for 8 of 12 retailers (sign test p = 0.39).
+**Verdict: a statistical tie.**
+
+## Error metrics beyond MAPE (pooled)
+
+| Model | MAPE | sMAPE | MASE | WAPE |
+|---|---|---|---|---|
+| seasonal_naive | 18.9% | 20.4% | 1.17 | 17.0% |
+| holt_winters | 18.6% | 19.3% | 1.11 | 16.3% |
+
+MASE is scaled by the seasonal-naive in-sample error of each fold, so 1.0 means 'no better than the baseline would have been on its own training data'.
+
+## MAPE and small denominators
+
+Seasonal-naive errors for the 3 smallest retailers (by mean monthly deductions): MAPE 26.4%, sMAPE 28.9%, WAPE 26.5%; for the 3 largest: MAPE 13.4%, sMAPE 14.9%, WAPE 13.3%. Correlation between log(actual) and absolute percentage error: -0.27. Small retailers have noisier months, so MAPE is the wrong headline for a dollar forecast: WAPE (and the scaled MASE) weight errors by size. MAPE is kept because the brief asked for it, and shown next to the others.
+
+## Prediction-interval coverage
+
+The dashboard band is the 80% band of pooled actual/forecast ratios. Coverage on the same backtest it was fitted on: 78.6% (about nominal by construction). Honest out-of-sample coverage, with each origin's band built only from earlier origins (216 points): **77.3%**.
+
 ## Where the model fails or loses
 
 - Holt-Winters did **not** beat the baseline for retailers: 3, 5, 7, 9.

@@ -41,3 +41,14 @@ class Config:
     annual_revenue: float = 150_000_000.0  # mid-history annual run rate
     yoy_growth: float = 0.08
     revenue_scale: float = 1.0  # shrink volume for fast unit tests
+    # Audit modes. planted=False generates a NULL dataset: same volume and noise, but no planted effect
+    # (flat revenue, no Retailer A fine excess, no promo spike, no lag drift, no anomaly, identical dispute and
+    # win rates for every reason, no filing-lag effect). dispute_bias=None keeps the original behaviour; a number
+    # (even 0.0) adds per-deduction "winnability" and makes AR teams dispute winnable deductions first.
+    planted: bool = True
+    dispute_bias: float | None = None
+
+
+NULL_DISPUTE_PROB = 0.28  # pooled across reasons for the null dataset
+NULL_WIN_PROB = 0.58
+WINNABILITY_SD = 0.12  # per-deduction win-probability heterogeneity when dispute_bias is on

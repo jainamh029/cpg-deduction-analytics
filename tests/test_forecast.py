@@ -6,7 +6,19 @@ import pandas as pd
 import pytest
 
 from forecast import model
-from forecast.model import HORIZON, backtest, mape, origins, seasonal_naive, wape
+from forecast.model import (
+    HORIZON,
+    backtest,
+    compare_models,
+    interval_coverage,
+    mape,
+    mase,
+    origins,
+    seasonal_naive,
+    seasonal_naive_scale,
+    smape,
+    wape,
+)
 from forecast.run import (
     FORECASTS_COLUMNS,
     FORWARD_COLUMNS,
@@ -145,3 +157,46 @@ def test_scores_match_recomputation_from_forecasts(forecast_results):
     one = forecasts[forecasts["retailer_id"] == 3]
     expected = np.mean(np.abs(one["actual"] - one["seasonal_naive"]) / one["actual"])
     assert scores.loc[(3, "seasonal_naive"), "mape"] == pytest.approx(expected)
+
+
+def test_smape_and_mase_match_hand_computed_values():
+    actual, forecast = np.array([100.0, 200.0]), np.array([110.0, 150.0])
+    # sMAPE = mean(2*10/(100+110), 2*50/(200+150)) = mean(20/210, 100/350) = (0.095238 + 0.285714) / 2
+    assert smape(actual, forecast) == pytest.approx((20 / 210 + 100 / 350) / 2)
+    # Training window 1..24: every 12-month difference is 12, so the seasonal-naive scale is 12.
+    scale = seasonal_naive_scale(np.arange(1.0, 25.0))
+    assert scale == 12.0
+    # Errors 6 and 18 -> scaled 0.5 and 1.5 -> MASE = 1.0.
+    assert mase(
+        np.array([10.0, 30.0]), np.array([4.0, 12.0]), np.array([scale, scale])
+    ) == pytest.approx(1.0)
+
+
+def test_comparison_of_identical_models_shows_no_difference_and_is_deterministic():
+    table = backtest(synthetic_monthly(3))
+    table["holt_winters"] = table[
+        "seasonal_naive"
+    ]  # identical forecasts -> every origin difference is 0
+    first = compare_models(table, n_boot=500)
+    assert first["mean_diff_mape"] == 0 and first["boot_ci_low"] == 0 == first["boot_ci_high"]
+    assert first["origins_hw_better"] == 0
+    assert compare_models(table, n_boot=500) == first  # seeded
+
+
+def test_comparison_detects_a_clearly_better_model():
+    table = backtest(synthetic_monthly(3))
+    table["holt_winters"] = table["actual"] * 1.01  # 1% error everywhere
+    table["seasonal_naive"] = table["actual"] * 1.30  # 30% error everywhere
+    result = compare_models(table, n_boot=2000)
+    assert result["origins_hw_better"] == result["n_origins"]
+    assert result["boot_ci_low"] > 0.2
+
+
+def test_interval_coverage_is_a_fraction_and_out_of_sample_uses_earlier_origins_only():
+    table = backtest(synthetic_monthly(3))
+    cov = interval_coverage(table)
+    assert 0 <= cov["out_of_sample_coverage"] <= 1 and 0 <= cov["in_sample_coverage"] <= 1
+    assert (
+        cov["out_of_sample_points"]
+        == len(table) - table["origin_month"].eq(table["origin_month"].min()).sum()
+    )

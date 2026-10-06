@@ -39,3 +39,32 @@ M30 KILLED    tests/test_analysis.py::test_08_payment_lag_drift_flags_retailer_b
 killed 28/30 = 93%
 ```
 
+## Audit 4a: fresh clone in a path containing a space, make all twice
+
+```
+$ scripts/audit_fresh_clone.sh <python3.11>
+clone root: <tmp>/path with space
+run 1: make all exit code 0
+All checks passed!
+validation passed for schema raw: 34 rules, 0 findings
+20:42:24  Done. PASS=116 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=116
+0 failure(s)
+165 passed in 19.41s
+run 2: make all exit code 0
+All checks passed!
+validation passed for schema raw: 34 rules, 0 findings
+20:43:50  Done. PASS=116 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=116
+0 failure(s)
+165 passed in 20.65s
+--- diff of table fingerprints (empty = identical):
+identical (29 tables)
+--- diff of output file hashes (empty = identical):
+identical (      12 files)
+--- tracked files modified by make all (run 1 / run 2):
+       0
+       0
+--- any 'bad interpreter' / 'No such file' errors:
+<tmp>/path with space/make1.log:0
+<tmp>/path with space/make2.log:0
+```
+
