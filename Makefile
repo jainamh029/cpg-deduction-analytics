@@ -6,9 +6,9 @@ BIN := $(VENV)/bin
 STAMP := $(VENV)/.installed
 export DBT_PROFILES_DIR := .
 
-.PHONY: all setup lint test build docs clean
+.PHONY: all setup data patterns lint test build docs clean
 
-all: setup lint test build
+all: setup lint data build test
 
 setup: $(STAMP)
 
@@ -17,6 +17,12 @@ $(STAMP): pyproject.toml
 	$(BIN)/pip install --quiet --upgrade pip
 	$(BIN)/pip install --quiet -e ".[dev]"
 	touch $(STAMP)
+
+data: $(STAMP)
+	$(BIN)/python -m data_gen.load
+
+patterns: $(STAMP)
+	$(BIN)/python -m scripts.pattern_report
 
 lint: $(STAMP)
 	$(BIN)/ruff check .

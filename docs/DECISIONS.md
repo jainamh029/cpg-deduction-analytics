@@ -34,4 +34,28 @@ Avoids float drift in reconciliation checks (`payments + deductions ≤ gross`).
 The project requires 3.11 (pyproject pins `>=3.11,<3.12`, CI uses 3.11). The development machine only had 3.12 system-wide and no `python3.11` on PATH, so Python 3.11 came from `uv python`. The Makefile takes `PY=` (default `python3.11`).
 
 ## D10. Dashboard: Metabase spike blocked in Phase 0 (open)
-**Status:** not completed. Docker is not installed on the development machine (no `docker` binary, no Docker Desktop/OrbStack/Colima/Podman), and no Java runtime is installed either, so Metabase could not be run in either form. Only a desk check was possible (driver README: MotherDuck-maintained, pre-built `ghcr.io/motherduckdb/metabase-duckdb` image, version pairing in `metabase_versions.json`, Alpine unsupported). That is not a verification. **Decision pending the user:** install a container runtime and rerun the spike, or switch to Streamlit. No switch has been made.
+**Status:** not completed. Docker is not installed on the development machine (no `docker` binary, no Docker Desktop/OrbStack/Colima/Podman), and no Java runtime is installed either, so Metabase could not be run in either form. Only a desk check was possible (driver README: MotherDuck-maintained, pre-built `ghcr.io/motherduckdb/metabase-duckdb` image, version pairing in `metabase_versions.json`, Alpine unsupported). That is not a verification. **Resolved (D11).**
+
+## D11. Dashboard built in Streamlit; Metabase left unverified
+The user decided (Docker unavailable) to build the dashboard in Streamlit. Metabase is **not claimed to work anywhere**; `docs/METABASE_NOTES.md` records the unverified path and risks.
+
+## D12. Phase gate script, build log, and test integrity
+`scripts/gate.sh` runs ruff, `ruff format --check`, pytest and (once models exist) `dbt build`, and only on success appends the trimmed real output to `docs/BUILD_LOG.md`. Rule: tests and tolerances are never loosened to pass; any change to an assertion is logged here with the old and new assertion and the reason.
+
+## D13. Ruff: E501 (line length) ignored
+Long string literals (SQL snippets, report text) tripped E501, which `ruff format` cannot fix. The formatter still wraps code at 100 columns. This is a lint-rule choice, not a test change.
+
+## D14. Generator design
+Integer cents internally (exact reconciliation); one `SeedSequence` spawning an independent stream per table family so adding a table does not reshuffle the others; `revenue_scale` shrinks volume for fast determinism tests. Invoice SKUs are drawn without replacement with a lognormal popularity skew; attributable deductions pick their SKU from the invoice's own lines. Payments equal gross less all deductions on the invoice (short-pay), so payments + deductions = gross exactly for paid invoices.
+
+## D15. Censoring is explicit, not hidden
+Everything dated after the as-of date (2025-12-31) is excluded (no deductions, payments, filings or resolutions after it). Consequences, handled in the metrics/analysis layers: (a) right-censoring: recent invoice months are not yet "mature" (their deductions and payments have not all arrived); (b) left-censoring: there are no 2022 invoices, so deduction-date months Jan-Mar 2023 are under-populated. Retailer B's lag drift is placed in Jan-Jun 2025 (not the last six months) so right-censoring does not mask it.
+
+## D16. Pattern 7 added: one-off anomaly
+Retailer E's shortage probability is x5 for invoices dated 2025-04. This is an extra planted event (not in the original six) so the anomaly-detection query has a known ground truth to be tested against.
+
+## D17. Dirty-load defects and exact expectations
+Exactly 3 orphaned deductions, 3 duplicate payments and 3 negative deduction amounts are injected into `raw_dirty`. A duplicate payment necessarily also overpays its invoice, so the validator reports it under two rules (`duplicate_payments` and `recon_overpaid_invoice`, 3 each). The expected findings dict lives in `data_gen/dirty.py` and the test compares it for equality.
+
+## D18. Observed pattern 1 is 3.66x, not 3.0x
+The A-vs-peer-median fine ratio is a draw from a distribution; with the fixed seed it is 3.66x (inside the 2.2-4.0 test range). I kept it rather than re-tuning the seed to hit exactly 3, per the "visible but imperfect" requirement.
