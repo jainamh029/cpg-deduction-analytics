@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
 import duckdb
@@ -38,9 +39,11 @@ def build_warehouse(path: Path, cfg: Config | None = None) -> Tables:
     clean = generate(cfg)
     dirty = inject_defects(clean, cfg.seed)
     path.parent.mkdir(parents=True, exist_ok=True)
-    for stale in (path, Path(f"{path}.wal")):
+    # Build beside the target and rename at the end: a killed run can never leave a half-built warehouse.
+    building = path.with_name(f"{path.stem}.building{path.suffix}")
+    for stale in (building, Path(f"{building}.wal")):
         stale.unlink(missing_ok=True)
-    con = duckdb.connect(str(path))
+    con = duckdb.connect(str(building))
     con.execute(DDL_FILE.read_text())
     con.execute("create schema raw_dirty")
     for table in LOAD_ORDER:
@@ -48,6 +51,8 @@ def build_warehouse(path: Path, cfg: Config | None = None) -> Tables:
         con.execute(f"create table raw_dirty.{table} as select * from raw.{table} limit 0")
         _insert(con, "raw_dirty", table, dirty[table])
     con.close()
+    Path(f"{path}.wal").unlink(missing_ok=True)
+    os.replace(building, path)
     return clean
 
 

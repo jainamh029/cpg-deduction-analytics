@@ -4,8 +4,8 @@ version = "0.1.0"
 description = "Synthetic-data analytics project: CPG retailer deductions and trade spend."
 requires-python = ">=3.11,<3.12"
 dependencies = [
-    "dbt-core>=1.12,<1.13",
-    "dbt-duckdb>=1.11,<1.12",
+    "dbt-core==1.12.5",
+    "dbt-duckdb==1.11.0",
     "duckdb==1.5.6",
     "numpy==2.4.6",
     "pandas==3.0.6",
@@ -17,8 +17,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=9,<10",
-    "ruff>=0.16,<0.17",
+    "pytest==9.1.1",
+    "ruff==0.16.10",
 ]
 
 screenshots = [
