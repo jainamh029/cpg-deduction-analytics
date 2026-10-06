@@ -28,6 +28,7 @@ select
     x.resolved_date,
     x.dispute_outcome,
     coalesce(x.dispute_count, 0) as dispute_count,
-    coalesce(x.recovered_amount, 0) as recovered_amount
+    -- re-filed disputes can sum to more than the deduction; a deduction cannot recover more than it was
+    least(coalesce(x.recovered_amount, 0), greatest(d.amount, 0)) as recovered_amount
 from {{ ref('stg_deductions') }} as d
 left join disputes_by_deduction as x on x.deduction_id = d.deduction_id
