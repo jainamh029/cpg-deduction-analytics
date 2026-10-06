@@ -125,3 +125,6 @@ Windows (90/180/365) and realization factors (0.50/0.75/1.00) live in `metrics.m
 
 ## D40. Screenshots
 Captured by `dashboard/capture_screenshots.py` with headless Google Chrome via Playwright (optional `screenshots` extra, Playwright 1.63, system Chrome so no browser download). They are real browser captures of the live app on the built warehouse.
+
+## D41. Reproducibility check found a nondeterministic key order
+The first fresh-clone `make all` after Phase 8 left `docs/findings.json` modified: same numbers, different `by_reason` key order, because `select * from metrics.m_reason_recovery` had no `ORDER BY` (hash aggregation order). The query is now ordered by `reason_code`; a fresh clone of the final commit runs `make all` to exit 0 and changes no tracked file.

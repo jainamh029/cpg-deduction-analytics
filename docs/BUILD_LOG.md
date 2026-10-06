@@ -335,3 +335,16 @@ ok   forecast.pooled_mape_naive               independent=0.188509         findi
 0 failure(s)
 ```
 
+## Final: fresh clone of the last commit, `make all`
+
+```
+All checks passed!
+52 files already formatted
+20:17:12  Done. PASS=116 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=116
+months=33 folds=252 pooled MAPE: seasonal_naive=0.189, holt_winters=0.186
+0 failure(s)
+150 passed in 16.60s
+make all   39.74s user 6.08s system 56% cpu 1:21.19 total
+exit code: 0; tracked files changed by make all: 0
+```
+
