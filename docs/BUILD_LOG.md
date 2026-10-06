@@ -129,3 +129,44 @@ $ .venv/bin/pytest
 
 ```
 
+## Phase 5: Forecast
+
+Run on 2026-10-06 15:58 EDT. Output trimmed to the last lines of each command.
+
+```
+$ .venv/bin/ruff check .
+All checks passed!
+
+$ .venv/bin/ruff format --check .
+32 files already formatted
+
+$ .venv/bin/python -m data_gen.load
+wrote /Users/jainamshah/cpg-deduction-analytics/warehouse/warehouse.duckdb
+
+$ .venv/bin/dbt build
+19:58:40  110 of 113 PASS unique_m_reason_recovery_reason_code ........................... [PASS in 0.02s]
+19:58:40  108 of 113 PASS unique_combination_m_deductions_monthly_retailer_id__reason_code__deduction_month  [PASS in 0.02s]
+19:58:40  111 of 113 START sql view model metrics.m_recoverable_candidates ............... [RUN]
+19:58:40  111 of 113 OK created sql view model metrics.m_recoverable_candidates .......... [OK in 0.01s]
+19:58:40  112 of 113 START test not_null_m_recoverable_candidates_deduction_id ........... [RUN]
+19:58:40  113 of 113 START test unique_m_recoverable_candidates_deduction_id ............. [RUN]
+19:58:40  112 of 113 PASS not_null_m_recoverable_candidates_deduction_id ................. [PASS in 0.03s]
+19:58:40  113 of 113 PASS unique_m_recoverable_candidates_deduction_id ................... [PASS in 0.03s]
+19:58:40  
+19:58:40  Finished running 1 project hook, 8 table models, 89 data tests, 16 view models in 0 hours 0 minutes and 1.33 seconds (1.33s).
+19:58:40  
+19:58:40  Completed successfully
+19:58:40  
+19:58:40  Done. PASS=114 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=114
+
+$ .venv/bin/python -m forecast.run
+months=33 folds=252 pooled MAPE: seasonal_naive=0.189, holt_winters=0.186
+wrote /Users/jainamshah/cpg-deduction-analytics/forecast/results and /Users/jainamshah/cpg-deduction-analytics/forecast/RESULTS.md
+
+$ .venv/bin/pytest
+................................................................s....... [ 63%]
+.........................................                                [100%]
+112 passed, 1 skipped in 13.81s
+
+```
+

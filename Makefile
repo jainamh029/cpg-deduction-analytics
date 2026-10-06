@@ -6,9 +6,9 @@ BIN := $(VENV)/bin
 STAMP := $(VENV)/.installed
 export DBT_PROFILES_DIR := .
 
-.PHONY: all setup data patterns lint test build docs clean
+.PHONY: all setup data patterns lint test build forecast docs clean
 
-all: setup lint data build test
+all: setup lint data build forecast test
 
 setup: $(STAMP)
 
@@ -28,11 +28,14 @@ lint: $(STAMP)
 	$(BIN)/ruff check .
 	$(BIN)/ruff format --check .
 
-test: build
+test: forecast
 	CPG_USE_BUILT=1 $(BIN)/pytest
 
 build: data
 	$(BIN)/dbt build
+
+forecast: build
+	$(BIN)/python -m forecast.run
 
 docs: $(STAMP)
 	$(BIN)/dbt docs generate

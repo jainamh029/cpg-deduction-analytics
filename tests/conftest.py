@@ -55,3 +55,16 @@ def bcon(built_warehouse: Path):
     connection = duckdb.connect(str(built_warehouse), read_only=True)
     yield connection
     connection.close()
+
+
+@pytest.fixture(scope="session")
+def forecast_results(built_warehouse: Path, tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Directory holding the forecast CSVs (reuses `make forecast` output under CPG_USE_BUILT)."""
+    from forecast.run import RESULTS_DIR
+    from forecast.run import main as run_forecast
+
+    if os.environ.get("CPG_USE_BUILT") and (RESULTS_DIR / "forward_forecast.csv").exists():
+        return RESULTS_DIR
+    out = tmp_path_factory.mktemp("forecast")
+    run_forecast(built_warehouse, out, out / "RESULTS.md")
+    return out

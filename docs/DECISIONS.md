@@ -104,3 +104,12 @@ The generator lowers win probability as filing lag grows (x1.10 within 14 days d
 
 ## D33. The DuckDB file must keep its name
 dbt-duckdb creates views that embed the database (catalog) name, which is the file stem. Copying `warehouse.duckdb` to another name breaks the views (`Catalog "warehouse" does not exist`). Tests and the benchmark therefore copy to a temp directory under the same file name, and anything that opens the warehouse (dashboard, scripts) opens `warehouse/warehouse.duckdb` directly.
+
+## D34. Forecast design
+Target: monthly deduction dollars by retailer on the deduction-date basis (ramp-up months excluded, so 33 usable months). Models: seasonal naive (baseline) and one Holt-Winters specification (damped additive trend, **multiplicative** seasonality) fixed before the first backtest and never tuned; multiplicative seasonality matches how deduction dollars scale with a growing, seasonal revenue base. Rolling-origin, expanding window, first origin after 24 months (two seasonal cycles), horizon 3, 7 origins -> 252 forecast points per model. Forecasts are floored at 0. Intervals are empirical (pooled backtest ratio quantiles) because statsmodels' Holt-Winters offers no analytic interval here. Scored on points where both models produced a forecast (0 failures observed).
+
+## D35. Forecast: no notebook
+PLAN.md listed a `forecast.ipynb`. It is dropped: a notebook needs Jupyter dependencies that would otherwise be unused, and the script already writes the results and RESULTS.md. Logged as a deviation.
+
+## D36. Honest forecast result
+Holt-Winters is only marginally better than the baseline in aggregate (pooled MAPE 18.6% vs 18.9%) and loses for 4 of 12 retailers; with 7 overlapping origins that difference is within noise. forecast/RESULTS.md and the README say so. I did not search for a spec that wins.
