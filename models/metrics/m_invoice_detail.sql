@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 -- Grain: one row per invoice. Row-level metric attributes; callers aggregate with metrics.* macros.
 with params as (
     select cast('{{ var("as_of_date") }}' as date) as as_of_date

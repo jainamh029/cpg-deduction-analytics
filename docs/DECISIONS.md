@@ -86,3 +86,21 @@ Invoice-cohort basis (`m_retailer_month`: deduction attributed to the month of i
 
 ## D27. Recoverable dollars is a metric, not an ad hoc query
 It is used by analysis 10, the CFO dashboard page and the README headline, so it lives in the metrics layer (`m_recoverable_candidates`) with the dispute window applied by the caller. Scenario haircuts (selection bias) are an analysis-level assumption, stated in the analysis file and README.
+
+## D28. Test correction: waterfall components slice
+`tests/test_analysis.py::test_01_...` asserted `steps[1:8].sum() == steps[9]` on a Series indexed by integer step numbers; pandas treats `[1:8]` as a *positional* slice, which silently dropped the first step (gross invoiced) and summed positions 1-7, so the test failed with -21.6M instead of 442.4M. **Old assertion:** `steps[1:8].sum() == approx(steps[9])`. **New assertion:** `steps.loc[1:8].sum() == approx(steps[9])` (label-based, inclusive: steps 1 to 8 = gross, six deduction steps, recoveries). **Why:** the intent was always "all steps before net sum to net"; the query output was correct (the independent raw-table check in the same test passed).
+
+## D29. Analysis 03: annotation moved to the line of the division
+The hygiene rule requires `-- non-metric:` on the same line as a `/`. In `03_compliance_fine_outliers.sql` the annotation sat at the end of a multi-line subquery expression, away from the `/`. The SQL was changed (annotation moved), the rule was not relaxed.
+
+## D30. Anomaly threshold and seasonality
+Analysis 07 uses |z| >= 3 against the trailing 12 months, no seasonal adjustment. Observed: 34 flagged cells of 1,512 scored (2.2%), including the planted Retailer E shortage spike (Apr and May 2025) and recurring post-Q4 promo spikes. The test caps total flags at 4% of scored cells, a plausibility bound chosen before looking at the count, not tuned to it.
+
+## D31. Win rate by filing lag is a built-in effect
+The generator lowers win probability as filing lag grows (x1.10 within 14 days down to x0.65 beyond 60), so analysis 05's monotone decline is by construction. It is documented in PLANTED_PATTERNS.md and the README must not present it as a discovery about real behavior.
+
+## D32. Materialize the two row-level metric models as tables
+`m_deduction_detail` and `m_invoice_detail` are dbt tables (not views): they evaluate a dozen macros per row and every analysis reads them. Measured (docs/PERFORMANCE.md): analyses 04/05/06 run about 1.3-1.6x faster (milliseconds; the gain is real but small at this data size). A view-version of 07's self-join vs window frame showed no difference; the window frame stays for readability, and that negative result is reported rather than hidden. No marts indexes were added (measured, no benefit).
+
+## D33. The DuckDB file must keep its name
+dbt-duckdb creates views that embed the database (catalog) name, which is the file stem. Copying `warehouse.duckdb` to another name breaks the views (`Catalog "warehouse" does not exist`). Tests and the benchmark therefore copy to a temp directory under the same file name, and anything that opens the warehouse (dashboard, scripts) opens `warehouse/warehouse.duckdb` directly.

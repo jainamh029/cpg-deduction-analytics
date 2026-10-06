@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 -- Grain: one row per deduction. Row-level metric attributes; callers aggregate with metrics.* macros.
 with params as (
     select
