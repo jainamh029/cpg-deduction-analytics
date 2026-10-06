@@ -40,7 +40,7 @@ if [ "$failed" = 1 ]; then exit 1; fi
   echo "Run on $(date '+%Y-%m-%d %H:%M %Z'). Output trimmed to the last lines of each command."
   echo
   echo '```'
-  sed 's/\x1b\[[0-9;]*m//g' "$log"
+  sed -e 's/\x1b\[[0-9;]*m//g' -e "s#$PWD/##g" "$log"
   echo '```'
   echo
 } >>docs/BUILD_LOG.md

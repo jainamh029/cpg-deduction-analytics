@@ -31,7 +31,7 @@ $ .venv/bin/ruff format --check .
 21 files already formatted
 
 $ .venv/bin/python -m data_gen.load
-wrote /Users/jainamshah/cpg-deduction-analytics/warehouse/warehouse.duckdb
+wrote warehouse/warehouse.duckdb
 
 $ .venv/bin/dbt build
 19:45:43  92 of 94 START test relationships_fct_disputes_deduction_id__deduction_id__ref_fct_deductions_  [RUN]
@@ -67,7 +67,7 @@ $ .venv/bin/ruff format --check .
 24 files already formatted
 
 $ .venv/bin/python -m data_gen.load
-wrote /Users/jainamshah/cpg-deduction-analytics/warehouse/warehouse.duckdb
+wrote warehouse/warehouse.duckdb
 
 $ .venv/bin/dbt build
 19:49:52  110 of 113 PASS unique_m_reason_recovery_reason_code ........................... [PASS in 0.02s]
@@ -104,7 +104,7 @@ $ .venv/bin/ruff format --check .
 27 files already formatted
 
 $ .venv/bin/python -m data_gen.load
-wrote /Users/jainamshah/cpg-deduction-analytics/warehouse/warehouse.duckdb
+wrote warehouse/warehouse.duckdb
 
 $ .venv/bin/dbt build
 19:55:20  109 of 113 PASS unique_m_reason_recovery_reason_code ........................... [PASS in 0.02s]
@@ -141,7 +141,7 @@ $ .venv/bin/ruff format --check .
 32 files already formatted
 
 $ .venv/bin/python -m data_gen.load
-wrote /Users/jainamshah/cpg-deduction-analytics/warehouse/warehouse.duckdb
+wrote warehouse/warehouse.duckdb
 
 $ .venv/bin/dbt build
 19:58:40  110 of 113 PASS unique_m_reason_recovery_reason_code ........................... [PASS in 0.02s]
@@ -161,7 +161,7 @@ $ .venv/bin/dbt build
 
 $ .venv/bin/python -m forecast.run
 months=33 folds=252 pooled MAPE: seasonal_naive=0.189, holt_winters=0.186
-wrote /Users/jainamshah/cpg-deduction-analytics/forecast/results and /Users/jainamshah/cpg-deduction-analytics/forecast/RESULTS.md
+wrote forecast/results and forecast/RESULTS.md
 
 $ .venv/bin/pytest
 ................................................................s....... [ 63%]
@@ -182,7 +182,7 @@ $ .venv/bin/ruff format --check .
 43 files already formatted
 
 $ .venv/bin/python -m data_gen.load
-wrote /Users/jainamshah/cpg-deduction-analytics/warehouse/warehouse.duckdb
+wrote warehouse/warehouse.duckdb
 
 $ .venv/bin/dbt build
 20:04:38  112 of 115 OK created sql view model metrics.m_recoverable_candidates .......... [OK in 0.01s]
@@ -202,12 +202,53 @@ $ .venv/bin/dbt build
 
 $ .venv/bin/python -m forecast.run
 months=33 folds=252 pooled MAPE: seasonal_naive=0.189, holt_winters=0.186
-wrote /Users/jainamshah/cpg-deduction-analytics/forecast/results and /Users/jainamshah/cpg-deduction-analytics/forecast/RESULTS.md
+wrote forecast/results and forecast/RESULTS.md
 
 $ .venv/bin/pytest
 ........................................................................ [ 53%]
 ..............................................................           [100%]
 134 passed in 15.20s
+
+```
+
+## Phase 7: CI workflow, hygiene tests
+
+Run on 2026-10-06 16:05 EDT. Output trimmed to the last lines of each command.
+
+```
+$ .venv/bin/ruff check .
+All checks passed!
+
+$ .venv/bin/ruff format --check .
+44 files already formatted
+
+$ .venv/bin/python -m data_gen.load
+wrote warehouse/warehouse.duckdb
+
+$ .venv/bin/dbt build
+20:05:35  112 of 115 OK created sql view model metrics.m_recoverable_candidates .......... [OK in 0.01s]
+20:05:35  107 of 115 OK created sql view model metrics.m_deductions_monthly .............. [OK in 0.12s]
+20:05:35  113 of 115 START test not_null_m_recoverable_candidates_deduction_id ........... [RUN]
+20:05:35  114 of 115 START test unique_m_recoverable_candidates_deduction_id ............. [RUN]
+20:05:35  115 of 115 START test unique_combination_m_deductions_monthly_retailer_id__reason_code__deduction_month  [RUN]
+20:05:35  113 of 115 PASS not_null_m_recoverable_candidates_deduction_id ................. [PASS in 0.05s]
+20:05:35  115 of 115 PASS unique_combination_m_deductions_monthly_retailer_id__reason_code__deduction_month  [PASS in 0.05s]
+20:05:35  114 of 115 PASS unique_m_recoverable_candidates_deduction_id ................... [PASS in 0.05s]
+20:05:35  
+20:05:35  Finished running 1 project hook, 8 table models, 90 data tests, 17 view models in 0 hours 0 minutes and 1.49 seconds (1.49s).
+20:05:35  
+20:05:35  Completed successfully
+20:05:35  
+20:05:35  Done. PASS=116 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=116
+
+$ .venv/bin/python -m forecast.run
+months=33 folds=252 pooled MAPE: seasonal_naive=0.189, holt_winters=0.186
+wrote forecast/results and forecast/RESULTS.md
+
+$ .venv/bin/pytest
+........................................................................ [ 50%]
+.......................................................................  [100%]
+143 passed in 15.55s
 
 ```
 

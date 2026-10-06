@@ -1,5 +1,6 @@
 name: ci
 
+# UNVERIFIED: this workflow has not run on GitHub yet. It is validated only as YAML and mirrors `make all`.
 on:
   push:
   pull_request:
@@ -14,7 +15,6 @@ jobs:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: pyproject.toml
-      - run: make setup PY=python3.11
-      - run: make lint
-      - run: make test
-      - run: make build
+      # make all = setup, lint (ruff), data (synthetic warehouse), build (dbt build + data tests),
+      # forecast (backtest), test (pytest)
+      - run: make all PY=python3.11

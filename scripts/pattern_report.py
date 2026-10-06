@@ -113,7 +113,7 @@ def main() -> None:
                 "peak month well above its own median", "peak/median >= 2.0",
                 f"{m.anomaly_cell(t):.2f}x")  # fmt: skip
     OUT.write_text(body + FOOTER.format(p1=PROBLEM_SKUS[0], p2=PROBLEM_SKUS[1]))
-    print(f"wrote {OUT}")
+    print(f"wrote {OUT.relative_to(OUT.parent)}")
 
 
 if __name__ == "__main__":

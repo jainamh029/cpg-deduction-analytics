@@ -44,6 +44,10 @@ def load_monthly(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
     return wide.reindex(full).fillna(0.0).astype(float).sort_index(axis=1)
 
 
+def _short(path: Path) -> Path:
+    return path.relative_to(ROOT.parent) if path.is_relative_to(ROOT.parent) else path
+
+
 def by_horizon(forecasts: pd.DataFrame) -> pd.DataFrame:
     complete = forecasts.dropna(subset=list(MODELS))
     rows = []
@@ -158,7 +162,7 @@ def main(
         f"months={len(monthly)} folds={len(forecasts)} pooled MAPE: "
         + ", ".join(f"{m}={v:.3f}" for m, v in pooled.items())
     )
-    print(f"wrote {out_dir} and {report_path}")
+    print(f"wrote {_short(out_dir)} and {_short(report_path)}")
 
 
 if __name__ == "__main__":

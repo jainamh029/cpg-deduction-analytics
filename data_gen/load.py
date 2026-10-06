@@ -57,7 +57,9 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=Config.seed)
     args = parser.parse_args()
     build_warehouse(args.path, Config(seed=args.seed))
-    print(f"wrote {args.path}")
+    print(
+        f"wrote {args.path.relative_to(REPO_ROOT) if args.path.is_relative_to(REPO_ROOT) else args.path}"
+    )
 
 
 if __name__ == "__main__":

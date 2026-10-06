@@ -197,7 +197,7 @@ Each index was created on a throw-away copy of the built warehouse (median of 21
 dashboard and analysis queries aggregate rather than look up single rows, and an ART index slows bulk loads
 and full rebuilds. See DECISIONS.md D22. The `raw` schema keeps the PK/FK indexes its constraints imply.
 """)
-    print(f"wrote {OUT}")
+    print(f"wrote {OUT.relative_to(ROOT)}")
     for p, b, a in mat:
         print(f"{p}: view={b:.2f}ms table={a:.2f}ms")
     print(f"07: self-join={t07[0]:.2f}ms window={t07[1]:.2f}ms")
