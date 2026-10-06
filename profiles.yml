@@ -1,0 +1,7 @@
+cpg_deductions:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: warehouse/warehouse.duckdb
+      threads: 4

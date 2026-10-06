@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+target/
+dbt_packages/
+logs/
+*.duckdb
+*.duckdb.wal
+data_out/
+dashboard/plugins/
+.DS_Store
+.user.yml

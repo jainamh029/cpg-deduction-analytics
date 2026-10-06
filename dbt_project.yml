@@ -1,0 +1,24 @@
+name: cpg_deductions
+version: "0.1.0"
+config-version: 2
+profile: cpg_deductions
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  cpg_deductions:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table
+    metrics:
+      +schema: metrics
+      +materialized: view
