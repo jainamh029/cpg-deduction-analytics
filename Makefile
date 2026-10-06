@@ -6,16 +6,16 @@ BIN := $(VENV)/bin
 STAMP := $(VENV)/.installed
 export DBT_PROFILES_DIR := .
 
-.PHONY: all setup data patterns lint test build forecast findings screenshots docs clean
+.PHONY: all setup data validate patterns lint test build forecast findings screenshots docs clean
 
 all: setup lint data build forecast findings test
 
 setup: $(STAMP)
 
-$(STAMP): pyproject.toml
+$(STAMP): pyproject.toml requirements.lock
 	$(PY) -m venv $(VENV)
 	$(BIN)/pip install --quiet --upgrade pip
-	$(BIN)/pip install --quiet -e ".[dev]"
+	$(BIN)/pip install --quiet -c requirements.lock -e ".[dev]"
 	touch $(STAMP)
 
 data: $(STAMP)
@@ -31,7 +31,10 @@ lint: $(STAMP)
 test: forecast
 	CPG_USE_BUILT=1 $(BIN)/pytest
 
-build: data
+validate: data
+	$(BIN)/python -m warehouse.validate --schema raw
+
+build: validate
 	$(BIN)/dbt build
 
 forecast: build

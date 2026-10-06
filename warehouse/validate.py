@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import argparse
 import re
+import sys
 from pathlib import Path
 
 import duckdb
@@ -32,3 +34,24 @@ def run_rules(con: duckdb.DuckDBPyConnection, schema: str) -> dict[str, int]:
 def findings(con: duckdb.DuckDBPyConnection, schema: str) -> dict[str, int]:
     """Only the rules that found something."""
     return {name: n for name, n in run_rules(con, schema).items() if n}
+
+
+def main() -> None:
+    """Gate for the build: exit 1 if the source schema has ANY finding (so dirty data never reaches dbt)."""
+    from data_gen.load import DEFAULT_PATH
+
+    parser = argparse.ArgumentParser(description="Validate a source schema before transforming it.")
+    parser.add_argument("--schema", default="raw")
+    parser.add_argument("--warehouse", type=Path, default=DEFAULT_PATH)
+    args = parser.parse_args()
+    con = duckdb.connect(str(args.warehouse), read_only=True)
+    found = findings(con, args.schema)
+    con.close()
+    if found:
+        print(f"validation FAILED for schema {args.schema}: {found}")
+        sys.exit(1)
+    print(f"validation passed for schema {args.schema}: {len(load_rules())} rules, 0 findings")
+
+
+if __name__ == "__main__":
+    main()

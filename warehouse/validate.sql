@@ -71,6 +71,18 @@ select count(*) from {s}.deductions d join {s}.invoices i using (invoice_id) whe
 select coalesce(sum(n - 1), 0)::bigint
 from (select count(*) as n from {s}.payments group by invoice_id, paid_date, paid_amount having count(*) > 1);
 
+-- rule: duplicate_deductions
+select coalesce(sum(n - 1), 0)::bigint
+from (select count(*) as n from {s}.deductions group by invoice_id, reason_code, sku_id, deduction_date, amount having count(*) > 1);
+-- rule: multiple_disputes_per_deduction
+select coalesce(sum(n - 1), 0)::bigint
+from (select count(*) as n from {s}.disputes group by deduction_id having count(*) > 1);
+-- rule: recon_recovered_total_exceeds_deduction
+select count(*)
+from (select deduction_id, sum(recovered_amount) as recovered from {s}.disputes group by 1) r
+join {s}.deductions d using (deduction_id)
+where r.recovered > d.amount;
+
 -- rule: date_due_before_invoice
 select count(*) from {s}.invoices where due_date < invoice_date;
 -- rule: date_deduction_before_invoice
