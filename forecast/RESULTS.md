@@ -53,7 +53,7 @@ MASE is scaled by the seasonal-naive in-sample error of each fold, so 1.0 means 
 
 ## MAPE and small denominators
 
-Seasonal-naive errors for the 3 smallest retailers (by mean monthly deductions): MAPE 26.4%, sMAPE 28.9%, WAPE 26.5%; for the 3 largest: MAPE 13.4%, sMAPE 14.9%, WAPE 13.3%. Correlation between log(actual) and absolute percentage error: -0.27. Small retailers have noisier months, so MAPE is the wrong headline for a dollar forecast: WAPE (and the scaled MASE) weight errors by size. MAPE is kept because the brief asked for it, and shown next to the others.
+Seasonal-naive errors for the 3 smallest retailers (by mean monthly deductions): MAPE 26.4%, sMAPE 28.9%, WAPE 26.5%; for the 3 largest: MAPE 13.4%, sMAPE 14.9%, WAPE 13.3%. Correlation between log(actual) and absolute percentage error: -0.27. No retailer-month is near zero here, so MAPE does not explode, but small retailers' percentage errors are much larger than large retailers'. WAPE and MASE weight errors by size (and are more relevant to a dollar forecast); MAPE is shown because the brief asked for it.
 
 ## Prediction-interval coverage
 

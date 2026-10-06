@@ -26,6 +26,8 @@ FILTERS = {
     "int": lambda v: f"{int(v):,}",
     "x1": lambda v: f"{v:.1f}x",
     "num1": lambda v: f"{v:.1f}",
+    "num2": lambda v: f"{v:.2f}",
+    "x2": lambda v: f"{v:.2f}x",
     "pts1": lambda v: f"{v:.1f}",
     "join": lambda v: ", ".join(str(x) for x in v),
     "keys": lambda v: ", ".join(f"`{k}` x{n}" for k, n in v.items()),

@@ -7,7 +7,7 @@ import re
 import pytest
 
 from scripts.render_readme import FINDINGS, README, TEMPLATE, render
-from scripts.verify_readme import independent_values, verify
+from scripts.verify_readme import compute, verify
 
 from .helpers import REPO_ROOT
 
@@ -43,12 +43,41 @@ def test_readme_numbers_match_independent_raw_table_sql(built_warehouse, forecas
     assert "FAIL" not in capsys.readouterr().out
 
 
-def test_at_least_five_numbers_are_independently_recomputed(built_warehouse, forecast_results):
+def test_every_readme_token_has_an_independent_value(built_warehouse, forecast_results):
     import duckdb
 
+    from scripts.render_readme import TOKEN
+
     con = duckdb.connect(str(built_warehouse), read_only=True)
-    assert len(independent_values(con, forecast_results)) >= 5
+    values = compute(con, forecast_results, REPO_ROOT / "docs" / "audit")
     con.close()
+    tokens = {
+        m.group(1).partition("|")[0]
+        for m in TOKEN.finditer(TEMPLATE.read_text())
+        if not m.group(1).startswith("include:")
+    }
+    assert len(tokens) > 100
+    assert tokens <= set(values), sorted(tokens - set(values))
+
+
+def test_verifier_fails_when_a_readme_number_is_wrong(built_warehouse, forecast_results, tmp_path):
+    wrong = tmp_path / "README.md"
+    wrong.write_text(README.read_text().replace("**$23.8M**", "**$24.8M**", 1))
+    assert verify(built_warehouse, readme_path=wrong, forecast_dir=forecast_results) == [
+        "headline.deductions"
+    ]
+
+
+def test_verifier_fails_when_the_template_contains_an_unchecked_number(
+    built_warehouse, forecast_results, tmp_path
+):
+    template = tmp_path / "template.md"
+    template.write_text(
+        TEMPLATE.read_text().replace("## Forecast\n", "## Forecast (about 17 percent worse)\n", 1)
+    )
+    assert verify(built_warehouse, forecast_dir=forecast_results, template_path=template) == [
+        "literal 17"
+    ]
 
 
 def test_qualitative_claims_in_the_template_hold(findings):

@@ -9,6 +9,7 @@ Usage: python -m scripts.build_findings   (requires `make build forecast`)
 from __future__ import annotations
 
 import json
+import re
 import textwrap
 from pathlib import Path
 
@@ -55,11 +56,20 @@ def headline(con, years: float) -> dict:
                metrics.deduction_rate(sum(deduction_amount) - sum(recovered_amount), sum(gross_amount)) as net_leakage_rate
         from metrics.m_invoice_detail""",
     )
+    h["mature_deduction_rate"] = float(
+        con.execute(
+            "select metrics.deduction_rate(sum(deduction_amount) filter (where is_mature_month), "
+            "sum(gross_amount) filter (where is_mature_month)) from metrics.m_retailer_month"
+        ).fetchone()[0]
+    )
     h["net_leakage"] = h["deductions"] - h["recovered"]
     grid = analysis(con, "10").set_index(["window_days", "scenario"])["recoverable_amount"]
     h["recoverable_180_low"], h["recoverable_180_base"], h["recoverable_180_high"] = (
         grid[(180, s)] for s in ("low", "base", "high")
     )
+    h["recoverable_180_history"] = h[
+        "recoverable_180_high"
+    ]  # realization factor 1.0 = pure historical rates
     h["recoverable_365_base"] = grid[(365, "base")]
     h["net_leakage_per_year"] = h["net_leakage"] / years
     return h
@@ -220,6 +230,8 @@ def forecast_summary(con) -> dict:
         index="retailer_id", columns="model", values="mape"
     )
     forward = pd.read_csv(FORECAST / "forward_forecast.csv", parse_dates=["month"])
+    extra = json.loads((FORECAST / "comparison.json").read_text())
+    comp, cov = extra["comparison"], extra["coverage"]
     months = [d.date().isoformat() for d in sorted(forward["month"].unique())]
     last_year = con.execute(
         "select coalesce(sum(deduction_amount), 0) from metrics.m_deductions_monthly where list_contains(?::DATE[], deduction_month)",
@@ -234,8 +246,67 @@ def forecast_summary(con) -> dict:
         "forward_p10": float(forward["hw_p10"].sum()),
         "forward_p90": float(forward["hw_p90"].sum()),
         "same_months_last_year": float(last_year),
+        "usable_months": int(
+            con.execute(
+                "select count(distinct deduction_month) from metrics.m_deductions_monthly where not is_burn_in_month"
+            ).fetchone()[0]
+        ),
+        "mean_diff_points": 100 * comp["mean_diff_mape"],
+        "boot_ci_low_points": 100 * comp["boot_ci_low"],
+        "boot_ci_high_points": 100 * comp["boot_ci_high"],
+        "boot_p": comp["boot_p_value"],
+        "dm_p": comp["dm_hln_p_value"],
+        "origins": comp["n_origins"],
+        "origins_hw_better": comp["origins_hw_better"],
+        "sign_test_p": comp["sign_test_p_value"],
+        "coverage_out_of_sample": cov["out_of_sample_coverage"],
+        "coverage_in_sample": cov["in_sample_coverage"],
+        "coverage_nominal": cov["nominal"],
         "forward_first_month": months[0][:7],
         "forward_last_month": months[-1][:7],
+    }
+
+
+def audit_summary() -> dict:
+    """Numbers from the committed audit sweeps (docs/audit/*.json), recomputed here from the raw sweep files."""
+    audit = ROOT / "docs" / "audit"
+
+    def load(name: str) -> pd.DataFrame:
+        return pd.DataFrame(json.loads((audit / name).read_text()))
+
+    null_b, null_a, planted = (
+        load("null_before.json"),
+        load("null_after.json"),
+        load("planted_after.json"),
+    )
+    bias = load("bias_results.json")
+    bias["level"] = bias["bias"].fillna(-1)
+    factors = bias.groupby("level")["implied_realization_factor"].mean()
+    shortage = bias.groupby("level")[
+        ["shortage_observed_win_rate", "shortage_true_win_prob_undisputed"]
+    ].mean()
+    return {
+        "runs": int(len(null_a)),
+        "null_anomalies_before": float(null_b["p7_anomalies_flagged"].mean()),
+        "null_anomalies_after": float(null_a["p7_anomalies_flagged"].mean()),
+        "null_p3_before_runs_flagged": int((null_b["p3_flagged"].map(len) > 0).sum()),
+        "null_p3_after_runs_flagged": int((null_a["p3_flagged"].map(len) > 0).sum()),
+        "null_max_fine_ratio": float(null_a["p1_ratio"].max()),
+        "planted_min_fine_ratio": float(planted["p1_ratio"].min()),
+        "null_max_spike": float(null_a["p2_median_spike"].max()),
+        "null_max_lag_change": float(null_a["p4_change_days"].max()),
+        "null_recoverable_base_mean": float(null_a["recoverable_180_base"].mean()),
+        "planted_recoverable_base_mean": float(planted["recoverable_180_base"].mean()),
+        **{
+            f"detected_{p}": int(planted[f"{p}_detected"].sum())
+            for p in ("p1", "p2", "p3", "p4", "p5", "p7")
+        },
+        "bias_factor_none": float(factors[0.0]),
+        "bias_factor_mid": float(factors[1.0]),
+        "bias_factor_strong": float(factors[1.5]),
+        "bias_shortage_observed_none": float(shortage.loc[0.0, "shortage_observed_win_rate"]),
+        "bias_shortage_observed_strong": float(shortage.loc[1.5, "shortage_observed_win_rate"]),
+        "bias_shortage_true_strong": float(shortage.loc[1.5, "shortage_true_win_prob_undisputed"]),
     }
 
 
@@ -396,6 +467,10 @@ def main() -> None:
             "months": 36,
             "years": years,
             **{k: int(v) for k, v in counts.items()},
+            "n_metrics": len(
+                re.findall(r"^\| \d+ \|", (ROOT / "docs" / "METRICS.md").read_text(), re.M)
+            ),
+            "n_analysis_files": len(list(ANALYSIS.glob("*.sql"))),
         },
         "headline": headline(con, years),
     }
@@ -405,6 +480,7 @@ def main() -> None:
     result["also"] = also_noticed(con)
     result["forecast"] = forecast_summary(con)
     result["data_quality"] = data_quality(con)
+    result["audit"] = audit_summary()
     charts(result, analysis(con, "01"))
     con.close()
     OUT.write_text(json.dumps(result, indent=2, default=float) + "\n")

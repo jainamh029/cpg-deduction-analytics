@@ -9,7 +9,9 @@
     "deductions": 49008,
     "disputes": 11877,
     "retailers": 12,
-    "skus": 300
+    "skus": 300,
+    "n_metrics": 11,
+    "n_analysis_files": 10
   },
   "headline": {
     "gross": 463963689.63,
@@ -19,10 +21,12 @@
     "recovery_rate": 0.09286061870435898,
     "net_revenue": 442351221.36,
     "net_leakage_rate": 0.04658224070774898,
+    "mature_deduction_rate": 0.05336997730692267,
     "net_leakage": 21612468.27,
     "recoverable_180_low": 613438.9652321171,
     "recoverable_180_base": 920158.4478481757,
     "recoverable_180_high": 1226877.9304642342,
+    "recoverable_180_history": 1226877.9304642342,
     "recoverable_365_base": 1946332.4413581379,
     "net_leakage_per_year": 7204156.09
   },
@@ -270,10 +274,9 @@
     "lag_days": 63.0755912663547,
     "lag_change_6m": 9.106432772639266,
     "lag_runner_up_change_6m": 0.03234085294386091,
-    "anomalies_flagged": 34,
+    "anomalies_flagged": 4,
     "anomaly_cells_scored": 1512,
     "planted_anomaly_months": [
-      "2025-04",
       "2025-05"
     ]
   },
@@ -286,6 +289,18 @@
     "forward_p10": 2685404.4011648125,
     "forward_p90": 4636608.820607406,
     "same_months_last_year": 2887834.78,
+    "usable_months": 33,
+    "mean_diff_points": 0.214434333560809,
+    "boot_ci_low_points": -2.2213634009794516,
+    "boot_ci_high_points": 2.736102774318509,
+    "boot_p": 0.885,
+    "dm_p": 0.9232478266034997,
+    "origins": 7,
+    "origins_hw_better": 3,
+    "sign_test_p": 0.3876953125,
+    "coverage_out_of_sample": 0.7731481481481481,
+    "coverage_in_sample": 0.7857142857142857,
+    "coverage_nominal": 0.8,
     "forward_first_month": "2026-01",
     "forward_last_month": "2026-03"
   },
@@ -299,5 +314,30 @@
       "duplicate_payments": 3
     },
     "clean_findings": {}
+  },
+  "audit": {
+    "runs": 20,
+    "null_anomalies_before": 25.65,
+    "null_anomalies_after": 3.1,
+    "null_p3_before_runs_flagged": 19,
+    "null_p3_after_runs_flagged": 0,
+    "null_max_fine_ratio": 1.980559011487568,
+    "planted_min_fine_ratio": 2.0389396075945316,
+    "null_max_spike": 1.2727101127838198,
+    "null_max_lag_change": 1.4780438760800507,
+    "null_recoverable_base_mean": 644122.2200307145,
+    "planted_recoverable_base_mean": 806414.6096366103,
+    "detected_p1": 20,
+    "detected_p2": 20,
+    "detected_p3": 20,
+    "detected_p4": 20,
+    "detected_p5": 20,
+    "detected_p7": 19,
+    "bias_factor_none": 0.9829463508408542,
+    "bias_factor_mid": 0.7970905190102893,
+    "bias_factor_strong": 0.760122353999329,
+    "bias_shortage_observed_none": 0.7663708106241959,
+    "bias_shortage_observed_strong": 0.8797018244439814,
+    "bias_shortage_true_strong": 0.7453312714740706
   }
 }
