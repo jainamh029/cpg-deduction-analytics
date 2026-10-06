@@ -3,20 +3,36 @@
 -- Metrics used: deduction rate (metrics.deduction_rate), on an invoice-cohort basis.
 -- Assumptions: only mature invoice months are used (4+ months old), because deductions for recent
 --   months have not all arrived yet; the 3-month rate is dollar-weighted (sum of deductions over sum of
---   gross), not an average of monthly rates.
--- Technique: LAG, rolling window via a named window, RANK.
+--   gross), not an average of monthly rates. Months in which a retailer has no invoices stay in the
+--   result with a NULL rate (calendar scaffold), so LAG always means "the previous calendar month".
+-- Technique: calendar scaffold, LAG, rolling window via a named window, RANK.
 
-with monthly as (
+with bounds as (
     select
-        m.retailer_id,
+        min(invoice_month) as first_month,
+        max(invoice_month) as last_month
+    from metrics.m_retailer_month
+    where is_mature_month
+),
+
+calendar as (
+    select cast(unnest(generate_series(first_month, last_month, interval 1 month)) as date) as invoice_month
+    from bounds
+),
+
+monthly as (
+    select
+        r.retailer_id,
         r.retailer_name,
-        m.invoice_month,
+        c.invoice_month,
         m.gross_amount,
         m.deduction_amount,
         m.deduction_rate
-    from metrics.m_retailer_month as m
-    inner join marts.dim_retailer as r on r.retailer_id = m.retailer_id
-    where m.is_mature_month
+    from marts.dim_retailer as r
+    cross join calendar as c
+    left join metrics.m_retailer_month as m
+        on m.retailer_id = r.retailer_id
+        and m.invoice_month = c.invoice_month
 ),
 
 windowed as (
@@ -43,6 +59,6 @@ select
     deduction_rate,
     deduction_rate - prev_month_rate as mom_change,
     rate_3m,
-    rank() over (partition by invoice_month order by rate_3m desc) as rank_in_month
+    rank() over (partition by invoice_month order by rate_3m desc nulls last) as rank_in_month
 from windowed
 order by invoice_month, rank_in_month

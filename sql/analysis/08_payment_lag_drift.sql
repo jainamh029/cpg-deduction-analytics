@@ -3,10 +3,24 @@
 --   amount paid).
 -- Assumptions: mature invoice months only (4+ months old), because slow payers' recent invoices are
 --   still unpaid and would bias recent lag downward; the 3-month figure is a simple mean of the monthly
---   lags; unpaid invoices have no lag and do not contribute.
--- Technique: LAG (1 and 6 months back), rolling average, RANK.
+--   lags; unpaid invoices have no lag and do not contribute; months with no paid invoices stay in the
+--   result with a NULL lag (calendar scaffold), so LAG(1) and LAG(6) are calendar months, not rows.
+-- Technique: calendar scaffold, LAG (1 and 6 months back), rolling average, RANK.
 
-with monthly as (
+with bounds as (
+    select
+        min(invoice_month) as first_month,
+        max(invoice_month) as last_month
+    from metrics.m_invoice_detail
+    where is_mature_month
+),
+
+calendar as (
+    select cast(unnest(generate_series(first_month, last_month, interval 1 month)) as date) as invoice_month
+    from bounds
+),
+
+lags as (
     select
         retailer_id,
         invoice_month,
@@ -14,6 +28,18 @@ with monthly as (
     from metrics.m_invoice_detail
     where is_mature_month
     group by retailer_id, invoice_month
+),
+
+monthly as (
+    select
+        r.retailer_id,
+        c.invoice_month,
+        l.payment_lag_days
+    from marts.dim_retailer as r
+    cross join calendar as c
+    left join lags as l
+        on l.retailer_id = r.retailer_id
+        and l.invoice_month = c.invoice_month
 ),
 
 windowed as (
