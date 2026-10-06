@@ -103,6 +103,9 @@ days from deduction to filing; used for cohort analysis), `is_mature_month`, `is
 ### 10. Payment lag
 - **Definition:** days from invoice date to the final payment, weighted by amount paid;
   `days_past_due` measures against `due_date`.
+- **`payment_lag(days, paid)`** weights whichever day-count it is given: analysis 08 trends `days_to_pay` within a
+  retailer over time; the dashboard compares retailers with `days_past_due`, because contractual terms (30/45/60
+  days) differ and would otherwise make 60-day-terms retailers look slow.
 - **Inclusions:** paid invoices only (unpaid have no lag). **Edge cases:** invoices within about 90 days
   of the as-of date are right-censored (slow payers have not paid yet), which biases recent lag *down*;
   trend analyses use mature months.

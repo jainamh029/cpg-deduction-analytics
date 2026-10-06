@@ -15,6 +15,8 @@ select
     d.is_sku_attributed,
     d.reason_code,
     d.status,
+    d.invoice_date,
+    date_trunc('month', d.invoice_date)::date as invoice_month,
     d.deduction_date,
     d.deduction_month,
     d.amount,

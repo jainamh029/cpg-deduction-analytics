@@ -170,3 +170,44 @@ $ .venv/bin/pytest
 
 ```
 
+## Phase 6: Dashboard (Streamlit)
+
+Run on 2026-10-06 16:04 EDT. Output trimmed to the last lines of each command.
+
+```
+$ .venv/bin/ruff check .
+All checks passed!
+
+$ .venv/bin/ruff format --check .
+43 files already formatted
+
+$ .venv/bin/python -m data_gen.load
+wrote /Users/jainamshah/cpg-deduction-analytics/warehouse/warehouse.duckdb
+
+$ .venv/bin/dbt build
+20:04:38  112 of 115 OK created sql view model metrics.m_recoverable_candidates .......... [OK in 0.01s]
+20:04:38  107 of 115 OK created sql view model metrics.m_deductions_monthly .............. [OK in 0.11s]
+20:04:38  113 of 115 START test not_null_m_recoverable_candidates_deduction_id ........... [RUN]
+20:04:38  114 of 115 START test unique_m_recoverable_candidates_deduction_id ............. [RUN]
+20:04:38  115 of 115 START test unique_combination_m_deductions_monthly_retailer_id__reason_code__deduction_month  [RUN]
+20:04:38  113 of 115 PASS not_null_m_recoverable_candidates_deduction_id ................. [PASS in 0.03s]
+20:04:38  115 of 115 PASS unique_combination_m_deductions_monthly_retailer_id__reason_code__deduction_month  [PASS in 0.03s]
+20:04:38  114 of 115 PASS unique_m_recoverable_candidates_deduction_id ................... [PASS in 0.03s]
+20:04:38  
+20:04:38  Finished running 1 project hook, 8 table models, 90 data tests, 17 view models in 0 hours 0 minutes and 1.31 seconds (1.31s).
+20:04:38  
+20:04:38  Completed successfully
+20:04:38  
+20:04:38  Done. PASS=116 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=116
+
+$ .venv/bin/python -m forecast.run
+months=33 folds=252 pooled MAPE: seasonal_naive=0.189, holt_winters=0.186
+wrote /Users/jainamshah/cpg-deduction-analytics/forecast/results and /Users/jainamshah/cpg-deduction-analytics/forecast/RESULTS.md
+
+$ .venv/bin/pytest
+........................................................................ [ 53%]
+..............................................................           [100%]
+134 passed in 15.20s
+
+```
+

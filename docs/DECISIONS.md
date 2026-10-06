@@ -113,3 +113,15 @@ PLAN.md listed a `forecast.ipynb`. It is dropped: a notebook needs Jupyter depen
 
 ## D36. Honest forecast result
 Holt-Winters is only marginally better than the baseline in aggregate (pooled MAPE 18.6% vs 18.9%) and loses for 4 of 12 retailers; with 7 overlapping origins that difference is within noise. forecast/RESULTS.md and the README say so. I did not search for a spec that wins.
+
+## D37. Dashboard architecture (Streamlit)
+Three pages for three users, selected with a sidebar radio (or `?page=sales|ops|cfo`), with shared filters (retailers, date range, reason codes). Data access lives in `dashboard/data.py` as plain functions over a DuckDB connection so they are testable without Streamlit; pages only render. Date filter semantics differ by page and are labelled: invoice date on the sales page (invoice-cohort metrics), deduction date elsewhere. Chart titles are generated from the data (numbers and names come from query results), so a takeaway can never go stale. Tests: data functions vs independent raw SQL and analysis SQL; Streamlit AppTest for every page, filters, empty selection, and "every title has a number and 8+ words".
+
+## D38. Retailer comparison uses days past due, not days to pay
+The first version of the sales chart ranked retailers by payment lag and named a 60-day-terms retailer the "slowest", which is a contract effect, not behaviour. The chart now ranks days past due (same macro, `metrics.payment_lag(days_past_due, paid)`), and METRICS.md says why.
+
+## D39. Recovery scenarios defined once
+Windows (90/180/365) and realization factors (0.50/0.75/1.00) live in `metrics.m_recovery_scenarios`; analysis 10 and the dashboard both read it. The factors are assumptions, labelled as such everywhere they appear.
+
+## D40. Screenshots
+Captured by `dashboard/capture_screenshots.py` with headless Google Chrome via Playwright (optional `screenshots` extra, Playwright 1.63, system Chrome so no browser download). They are real browser captures of the live app on the built warehouse.

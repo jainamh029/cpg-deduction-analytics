@@ -6,35 +6,26 @@
 --   such deductions would win at their reason's historical win rate and recover the historical share of
 --   the amount on a win. Because people tend to dispute the ones they expect to win, scenarios apply a
 --   realization factor to the history-based figure: low 0.50, base 0.75, high 1.00 (ASSUMED, not measured).
--- Technique: scenario grid (cross join of windows and factors), window-limited aggregation.
+-- Technique: scenario grid (metrics.m_recovery_scenarios holds the windows and factors), window-limited aggregation.
 
-with windows as (
-    select window_days
-    from (values (90), (180), (365)) as w (window_days)
-),
-
-scenarios as (
-    select scenario, realization_factor
-    from (values ('low', 0.50), ('base', 0.75), ('high', 1.00)) as s (scenario, realization_factor)
-),
-
-window_totals as (
+with window_totals as (
     select
-        w.window_days,
+        s.window_days,
+        s.scenario,
+        s.realization_factor,
         count(*) as candidate_deductions,
         sum(c.amount) as candidate_amount,
         sum(c.expected_recovery) as expected_recovery_at_history
-    from windows as w
-    inner join metrics.m_recoverable_candidates as c on c.age_days <= w.window_days
-    group by w.window_days
+    from metrics.m_recovery_scenarios as s
+    inner join metrics.m_recoverable_candidates as c on c.age_days <= s.window_days
+    group by s.window_days, s.scenario, s.realization_factor
 )
 
 select
-    t.window_days,
-    s.scenario,
-    t.candidate_deductions,
-    t.candidate_amount,
-    t.expected_recovery_at_history * s.realization_factor as recoverable_amount
-from window_totals as t
-cross join scenarios as s
-order by t.window_days, s.realization_factor
+    window_days,
+    scenario,
+    candidate_deductions,
+    candidate_amount,
+    expected_recovery_at_history * realization_factor as recoverable_amount
+from window_totals
+order by window_days, realization_factor

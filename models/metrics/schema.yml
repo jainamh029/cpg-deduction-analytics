@@ -39,3 +39,7 @@ models:
     columns:
       - name: deduction_id
         data_tests: [unique, not_null]
+  - name: m_recovery_scenarios
+    description: "Grain: one row per dispute window x scenario. Assumptions for recoverable dollars."
+    data_tests:
+      - unique_combination: {arguments: {combination_of_columns: [window_days, scenario]}}
