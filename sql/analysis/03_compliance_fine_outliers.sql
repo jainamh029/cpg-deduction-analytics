@@ -1,7 +1,8 @@
 -- Business question: Is one retailer's compliance-fine rate far above its peers, and is it concentrated in
 --   a few SKUs? How much of the picture sits in the "(unattributed)" bucket?
 -- Metrics used: deduction rate (metrics.deduction_rate) restricted to the compliance_fine reason.
--- Assumptions: peers = every other retailer; a retailer's score is its fine rate divided by the median
+-- Assumptions: is_fine_outlier means the ratio is at least 2.0 (a judgement threshold: 20 datasets with no planted
+--   effect never exceeded 1.98, 20 with the planted effect never fell below 2.04, so the margin is thin); peers = every other retailer; a retailer's score is its fine rate divided by the median
 --   fine rate of its peers. Fines with no SKU reference stay visible as the "(unattributed)" bucket, so
 --   SKU shares are shown both over all fines and over attributed fines only.
 -- Technique: chained CTEs, correlated peer median, RANK, running share, explicit unattributed bucket.
@@ -106,6 +107,7 @@ select
     r.retailer_name,
     t.fine_rate,
     t.ratio_to_peer_median,
+    t.ratio_to_peer_median >= 2.0 as is_fine_outlier, -- non-metric: outlier threshold (null data reached 1.98x, planted data 2.04x at the lowest)
     s.sku_key,
     s.sku_label,
     s.sku_rank,

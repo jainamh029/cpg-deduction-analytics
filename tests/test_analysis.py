@@ -191,7 +191,7 @@ def test_07_anomalies_find_the_planted_event_and_not_too_many_others(bcon):
     )
     cells = 12 * 6 * 21  # retailers x reasons x scored months (Apr 2024 .. Dec 2025)
     assert len(df) <= 0.04 * cells  # not an implausible number of other flags
-    assert (df["z_score"].abs() >= 3).all()
+    assert (df["z_score"].abs() >= 4.5).all()
     # Independent z-score for the planted cell, from raw deductions.
     monthly = (
         bcon.execute(

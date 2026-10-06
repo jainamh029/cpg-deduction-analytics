@@ -3,8 +3,11 @@
 -- Metrics used: deduction dollars by retailer, reason and deduction month (metrics.m_deductions_monthly).
 -- Assumptions: baseline = the trailing 12 months, excluding the current month; months with fewer than 12
 --   baseline months are not scored; ramp-up months (the first 3, before invoices existed) are excluded;
---   months with no deductions count as $0; |z| >= 3 is flagged. Seasonal effects are NOT removed, so
---   recurring seasonal spikes (e.g. post-Q4 promo claims) can flag too.
+--   months with no deductions count as $0; |z| >= 4.5 is flagged. A z-score against a 12-point baseline follows
+--   roughly a t distribution with 11 degrees of freedom, where |t| >= 3 occurs 1.2% of the time (about 18 of the
+--   1,512 scored cells by chance; the audit measured 25.6 on average in data with no planted anomaly) and
+--   |t| >= 4.5 about 0.1% (about 1.5 cells). Seasonal effects are NOT removed, so recurring seasonal spikes
+--   (e.g. post-Q4 promo claims) can flag too.
 -- Technique: calendar scaffold, window frame (12 preceding to 1 preceding), z-score, RANK.
 
 with bounds as (
@@ -78,5 +81,5 @@ select
     z_score,
     rank() over (order by abs(z_score) desc) as anomaly_rank
 from flagged
-where abs(z_score) >= 3
+where abs(z_score) >= 4.5
 order by anomaly_rank
