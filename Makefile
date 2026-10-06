@@ -6,9 +6,9 @@ BIN := $(VENV)/bin
 STAMP := $(VENV)/.installed
 export DBT_PROFILES_DIR := .
 
-.PHONY: all setup data patterns lint test build forecast screenshots docs clean
+.PHONY: all setup data patterns lint test build forecast findings screenshots docs clean
 
-all: setup lint data build forecast test
+all: setup lint data build forecast findings test
 
 setup: $(STAMP)
 
@@ -42,6 +42,12 @@ docs: $(STAMP)
 
 clean:
 	rm -rf $(VENV) target logs warehouse/*.duckdb warehouse/*.duckdb.wal .pytest_cache .ruff_cache
+
+findings: forecast
+	$(BIN)/python -m scripts.build_findings
+	$(BIN)/python -m scripts.lineage
+	$(BIN)/python -m scripts.render_readme
+	$(BIN)/python -m scripts.verify_readme
 
 screenshots: forecast
 	$(BIN)/python -m dashboard.capture_screenshots

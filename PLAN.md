@@ -2,7 +2,7 @@
 
 > **All data in this project is synthetic.** It is not Confido's data, schema, or any real company's. The fictional company is "Northfield Foods" (~$150M/yr, 12 retailers, ~300 SKUs, **36 months**).
 
-Status: **v2, approved with changes (see revision log). Phase 0 in progress.**
+Status: **v2, approved with changes (see revision log). All phases built; deviations from this plan are listed in docs/FINAL_REPORT.md section 5 and logged in docs/DECISIONS.md.**
 
 ## Revision log (v1 → v2)
 

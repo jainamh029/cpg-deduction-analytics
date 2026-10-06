@@ -1,0 +1,303 @@
+{
+  "meta": {
+    "as_of": "2025-12-31",
+    "seed": 20260101,
+    "months": 36,
+    "years": 3.0,
+    "invoices": 48178,
+    "invoice_lines": 482139,
+    "deductions": 49008,
+    "disputes": 11877,
+    "retailers": 12,
+    "skus": 300
+  },
+  "headline": {
+    "gross": 463963689.63,
+    "deductions": 23824859.46,
+    "recovered": 2212391.19,
+    "deduction_rate": 0.05135069832512057,
+    "recovery_rate": 0.09286061870435898,
+    "net_revenue": 442351221.36,
+    "net_leakage_rate": 0.04658224070774898,
+    "net_leakage": 21612468.27,
+    "recoverable_180_low": 613438.9652321171,
+    "recoverable_180_base": 920158.4478481757,
+    "recoverable_180_high": 1226877.9304642342,
+    "recoverable_365_base": 1946332.4413581379,
+    "net_leakage_per_year": 7204156.09
+  },
+  "finding1": {
+    "shortage_dispute_rate": 0.1678007700806346,
+    "shortage_win_rate": 0.8032154340836013,
+    "shortage_deducted": 4582553.88,
+    "others_dispute_rate": 0.19677115635952813,
+    "others_win_rate": 0.5376575468798033,
+    "non_promo_peers_dispute_rate": 0.34644678579012367,
+    "non_promo_peers_win_rate": 0.5414425293665606,
+    "undisputed_items": 5616,
+    "undisputed_amount": 2655459.83,
+    "potential_recovery": 1856196.7579565803,
+    "potential_recovery_per_year": 618732.2526521934,
+    "fast_bucket": "0-14",
+    "fast_win_rate": 0.6544299329332862,
+    "slow_bucket": "61+",
+    "slow_win_rate": 0.3915441176470588,
+    "by_reason": {
+      "pricing": {
+        "dispute_rate": 0.38296794502063375,
+        "win_rate": 0.6427228281308762,
+        "deduction_amount": 2826184.63
+      },
+      "shortage": {
+        "dispute_rate": 0.1678007700806346,
+        "win_rate": 0.8032154340836013,
+        "deduction_amount": 4582553.88
+      },
+      "promo": {
+        "dispute_rate": 0.05791562423444958,
+        "win_rate": 0.4846153846153846,
+        "deduction_amount": 9981951.98
+      },
+      "other": {
+        "dispute_rate": 0.33146905992635445,
+        "win_rate": 0.5189289012003694,
+        "deduction_amount": 1989586.57
+      },
+      "damage": {
+        "dispute_rate": 0.2985086198611837,
+        "win_rate": 0.451346893897746,
+        "deduction_amount": 1831790.52
+      },
+      "compliance_fine": {
+        "dispute_rate": 0.3519568385982584,
+        "win_rate": 0.5184584178498985,
+        "deduction_amount": 2612791.88
+      }
+    }
+  },
+  "finding2": {
+    "retailer": "Retailer A",
+    "ratio_to_peers": 3.664330308653538,
+    "fine_rate": 0.014143567897738744,
+    "peer_median_fine_rate": 0.003859796117270829,
+    "fines_total": 1034398.6,
+    "excess_over_peer_rate": 752110.0198583013,
+    "excess_per_year": 250703.3399527671,
+    "top2_skus": [
+      "SKU 041",
+      "SKU 187"
+    ],
+    "top2_share_of_all": 0.5721719944323204,
+    "top2_share_of_attributed": 0.7059067142776737,
+    "unattributed_share": 0.18945098146884576,
+    "dilution_points": 13.373471984535335,
+    "compliance_win_rate": 0.5184584178498985,
+    "chart_rows": [
+      {
+        "label": "SKU 041",
+        "amount": 309546.31
+      },
+      {
+        "label": "SKU 187",
+        "amount": 282307.6
+      },
+      {
+        "label": "SKU 004",
+        "amount": 4139.93
+      },
+      {
+        "label": "SKU 146",
+        "amount": 3429.19
+      },
+      {
+        "label": "SKU 290",
+        "amount": 3422.37
+      },
+      {
+        "label": "(unattributed)",
+        "amount": 195967.83
+      }
+    ]
+  },
+  "finding3": {
+    "promo_amount": 9981951.98,
+    "promo_share_of_deductions": 0.4189721243375595,
+    "promo_dispute_rate": 0.05791562423444958,
+    "promo_win_rate": 0.4846153846153846,
+    "median_spike_index": 2.187823883595777,
+    "retailer_years_with_spike": 22,
+    "retailer_years": 24,
+    "undisputed_amount": 6608800.92,
+    "potential_recovery_upper_bound": 2770387.0152657377,
+    "potential_recovery_per_year": 923462.3384219125,
+    "monthly": [
+      {
+        "month": "2023-04",
+        "amount": 186613.17
+      },
+      {
+        "month": "2023-05",
+        "amount": 195650.9
+      },
+      {
+        "month": "2023-06",
+        "amount": 201852.9
+      },
+      {
+        "month": "2023-07",
+        "amount": 228970.32
+      },
+      {
+        "month": "2023-08",
+        "amount": 208133.76
+      },
+      {
+        "month": "2023-09",
+        "amount": 172406.09
+      },
+      {
+        "month": "2023-10",
+        "amount": 193412.58
+      },
+      {
+        "month": "2023-11",
+        "amount": 185688.97
+      },
+      {
+        "month": "2023-12",
+        "amount": 442769.02
+      },
+      {
+        "month": "2024-01",
+        "amount": 649545.36
+      },
+      {
+        "month": "2024-02",
+        "amount": 623180.2
+      },
+      {
+        "month": "2024-03",
+        "amount": 472634.46
+      },
+      {
+        "month": "2024-04",
+        "amount": 184154.61
+      },
+      {
+        "month": "2024-05",
+        "amount": 217827.29
+      },
+      {
+        "month": "2024-06",
+        "amount": 208244.38
+      },
+      {
+        "month": "2024-07",
+        "amount": 206723.38
+      },
+      {
+        "month": "2024-08",
+        "amount": 221013.1
+      },
+      {
+        "month": "2024-09",
+        "amount": 220790.15
+      },
+      {
+        "month": "2024-10",
+        "amount": 230839.92
+      },
+      {
+        "month": "2024-11",
+        "amount": 139649.61
+      },
+      {
+        "month": "2024-12",
+        "amount": 378803.31
+      },
+      {
+        "month": "2025-01",
+        "amount": 580945.28
+      },
+      {
+        "month": "2025-02",
+        "amount": 601511.48
+      },
+      {
+        "month": "2025-03",
+        "amount": 451391.35
+      },
+      {
+        "month": "2025-04",
+        "amount": 210911.99
+      },
+      {
+        "month": "2025-05",
+        "amount": 232653.22
+      },
+      {
+        "month": "2025-06",
+        "amount": 242060.63
+      },
+      {
+        "month": "2025-07",
+        "amount": 244297.2
+      },
+      {
+        "month": "2025-08",
+        "amount": 246980.52
+      },
+      {
+        "month": "2025-09",
+        "amount": 221455.0
+      },
+      {
+        "month": "2025-10",
+        "amount": 226634.75
+      },
+      {
+        "month": "2025-11",
+        "amount": 203270.65
+      },
+      {
+        "month": "2025-12",
+        "amount": 523787.84
+      }
+    ]
+  },
+  "also": {
+    "lag_retailer": "Retailer B",
+    "lag_days": 63.0755912663547,
+    "lag_change_6m": 9.106432772639266,
+    "lag_runner_up_change_6m": 0.03234085294386091,
+    "anomalies_flagged": 34,
+    "anomaly_cells_scored": 1512,
+    "planted_anomaly_months": [
+      "2025-04",
+      "2025-05"
+    ]
+  },
+  "forecast": {
+    "pooled_mape_naive": 0.18850875650443683,
+    "pooled_mape_hw": 0.18636441316882874,
+    "retailers_hw_better": 8,
+    "retailers": 12,
+    "forward_total_hw": 3365921.259102848,
+    "forward_p10": 2685404.4011648125,
+    "forward_p90": 4636608.820607406,
+    "same_months_last_year": 2887834.78,
+    "forward_first_month": "2026-01",
+    "forward_last_month": "2026-03"
+  },
+  "data_quality": {
+    "sku_null_rate_count": 0.493286810316683,
+    "sku_null_rate_amount": 0.5326845415943536,
+    "dirty_findings": {
+      "fk_deductions_invoice": 3,
+      "nonpositive_deduction_amount": 3,
+      "recon_overpaid_invoice": 3,
+      "duplicate_payments": 3
+    },
+    "clean_findings": {}
+  }
+}

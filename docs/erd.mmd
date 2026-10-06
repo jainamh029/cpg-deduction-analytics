@@ -1,0 +1,19 @@
+erDiagram
+    RETAILERS ||--o{ INVOICES : "billed to"
+    RETAILERS ||--o{ PROMOTIONS : runs
+    RETAILERS ||--o{ DEDUCTIONS : "takes"
+    SKUS ||--o{ INVOICE_LINES : "sold as"
+    SKUS ||--o{ PROMOTIONS : "promoted"
+    SKUS |o--o{ DEDUCTIONS : "optional reference"
+    INVOICES ||--|{ INVOICE_LINES : contains
+    INVOICES ||--o{ PAYMENTS : "paid by"
+    INVOICES ||--o{ DEDUCTIONS : "short-paid with"
+    DEDUCTIONS ||--o| DISPUTES : "disputed in"
+    RETAILERS { int retailer_id PK }
+    SKUS { int sku_id PK }
+    INVOICES { int invoice_id PK }
+    INVOICE_LINES { int invoice_id PK "FK" }
+    PAYMENTS { int payment_id PK }
+    DEDUCTIONS { int deduction_id PK "sku_id nullable" }
+    DISPUTES { int dispute_id PK "deduction_id unique" }
+    PROMOTIONS { int promo_id PK }

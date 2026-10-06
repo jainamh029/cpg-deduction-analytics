@@ -12,6 +12,7 @@ dependencies = [
     "statsmodels==0.15.0",
     "streamlit==1.65.0",
     "altair==6.3.0",
+    "matplotlib==3.11.2",
 ]
 
 [project.optional-dependencies]

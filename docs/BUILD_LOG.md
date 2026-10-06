@@ -270,3 +270,68 @@ make all   35.65s user 5.49s system 55% cpu 1:13.92 total
 exit code: 0
 ```
 
+## Phase 8: Findings memo README
+
+Run on 2026-10-06 16:13 EDT. Output trimmed to the last lines of each command.
+
+```
+$ .venv/bin/ruff check .
+All checks passed!
+
+$ .venv/bin/ruff format --check .
+51 files already formatted
+
+$ .venv/bin/python -m data_gen.load
+wrote warehouse/warehouse.duckdb
+
+$ .venv/bin/dbt build
+20:13:06  111 of 115 PASS not_null_m_reason_recovery_reason_code ......................... [PASS in 0.02s]
+20:13:06  112 of 115 PASS unique_m_reason_recovery_reason_code ........................... [PASS in 0.02s]
+20:13:06  113 of 115 START sql view model metrics.m_recoverable_candidates ............... [RUN]
+20:13:06  113 of 115 OK created sql view model metrics.m_recoverable_candidates .......... [OK in 0.01s]
+20:13:06  114 of 115 START test not_null_m_recoverable_candidates_deduction_id ........... [RUN]
+20:13:06  115 of 115 START test unique_m_recoverable_candidates_deduction_id ............. [RUN]
+20:13:06  114 of 115 PASS not_null_m_recoverable_candidates_deduction_id ................. [PASS in 0.01s]
+20:13:06  115 of 115 PASS unique_m_recoverable_candidates_deduction_id ................... [PASS in 0.02s]
+20:13:06  
+20:13:06  Finished running 1 project hook, 8 table models, 90 data tests, 17 view models in 0 hours 0 minutes and 1.43 seconds (1.43s).
+20:13:06  
+20:13:06  Completed successfully
+20:13:06  
+20:13:06  Done. PASS=116 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=116
+
+$ .venv/bin/python -m forecast.run
+months=33 folds=252 pooled MAPE: seasonal_naive=0.189, holt_winters=0.186
+wrote forecast/results and forecast/RESULTS.md
+
+$ .venv/bin/pytest
+........................................................................ [ 48%]
+........................................................................ [ 96%]
+......                                                                   [100%]
+150 passed in 16.94s
+
+```
+
+## Phase 8b: scripts/verify_readme.py (independent recomputation from RAW tables)
+
+```
+ok   headline.gross                           independent=4.63964e+08      findings=4.63964e+08      README shows '$464.0M': True
+ok   headline.deductions                      independent=2.38249e+07      findings=2.38249e+07      README shows '$23.8M': True
+ok   headline.deduction_rate                  independent=0.0513507        findings=0.0513507        README shows '5.1%': True
+ok   headline.recovered                       independent=2.21239e+06      findings=2.21239e+06      README shows '$2.2M': True
+ok   headline.net_leakage                     independent=2.16125e+07      findings=2.16125e+07      README shows '$21.6M': True
+ok   headline.recoverable_180_base            independent=920158           findings=920158           README shows '$920K': True
+ok   finding1.shortage_dispute_rate           independent=0.167801         findings=0.167801         README shows '17%': True
+ok   finding1.shortage_win_rate               independent=0.803215         findings=0.803215         README shows '80%': True
+ok   finding2.ratio_to_peers                  independent=3.66433          findings=3.66433          README shows '3.7x': True
+ok   finding2.top2_share_of_attributed        independent=0.705907         findings=0.705907         README shows '71%': True
+ok   finding2.top2_share_of_all               independent=0.572172         findings=0.572172         README shows '57%': True
+ok   finding3.median_spike_index              independent=2.18782          findings=2.18782          README shows '2.2x': True
+ok   also.lag_change_6m                       independent=9.10643          findings=9.10643          README shows '9.1': True
+ok   data_quality.sku_null_rate_count         independent=0.493287         findings=0.493287         README shows '49.3%': True
+ok   data_quality.sku_null_rate_amount        independent=0.532685         findings=0.532685         README shows '53.3%': True
+ok   forecast.pooled_mape_hw                  independent=0.186364         findings=0.186364         README shows '18.6%': True
+ok   forecast.pooled_mape_naive               independent=0.188509         findings=0.188509         README shows '18.9%': True
+0 failure(s)
+```
+
