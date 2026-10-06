@@ -1,0 +1,212 @@
+[
+  {
+    "id": "M01",
+    "description": "fan-out: fct_deductions joined to invoice lines (deduction x ~10 lines)",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_file_header_and_execution[01_gross_to_net_waterfall.sql]",
+    "seconds": 7.4
+  },
+  {
+    "id": "M02",
+    "description": "fan-out: fct_invoices joined to raw deductions (gross repeated per deduction)",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_file_header_and_execution[01_gross_to_net_waterfall.sql]",
+    "seconds": 6.6
+  },
+  {
+    "id": "M03",
+    "description": "LEFT JOIN -> INNER JOIN: fct_invoices drops unpaid invoices",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_file_header_and_execution[01_gross_to_net_waterfall.sql]",
+    "seconds": 6.5
+  },
+  {
+    "id": "M04",
+    "description": "LEFT JOIN -> INNER JOIN: fct_deductions drops orphaned deductions",
+    "status": "SURVIVED",
+    "caught_by": "",
+    "seconds": 21.6
+  },
+  {
+    "id": "M05",
+    "description": "LEFT JOIN -> INNER JOIN: fct_disputes drops disputes without a deduction row",
+    "status": "SURVIVED",
+    "caught_by": "",
+    "seconds": 21.5
+  },
+  {
+    "id": "M06",
+    "description": "aging boundary 30/31 (<= 30 -> < 30)",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_04_open_balance_and_buckets_match_raw",
+    "seconds": 7.2
+  },
+  {
+    "id": "M07",
+    "description": "aging boundary 60/61 (<= 60 -> < 60)",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_04_open_balance_and_buckets_match_raw",
+    "seconds": 6.8
+  },
+  {
+    "id": "M08",
+    "description": "aging boundary 90/91 (<= 90 -> < 90)",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_04_open_balance_and_buckets_match_raw",
+    "seconds": 6.9
+  },
+  {
+    "id": "M09",
+    "description": "deduction rate: wrong denominator (gross + deductions)",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_02_rate_trend_rows_values_and_ranks",
+    "seconds": 6.9
+  },
+  {
+    "id": "M10",
+    "description": "recovery rate: wrong denominator (recovered + deducted)",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_10_recoverable_dollars_match_independent_computation",
+    "seconds": 6.9
+  },
+  {
+    "id": "M11",
+    "description": "win rate: wrong denominator (resolved + wins)",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_05_filing_lag_cohorts_match_raw_and_faster_wins_more",
+    "seconds": 6.6
+  },
+  {
+    "id": "M12",
+    "description": "unattributed SKU bucket dropped from dim_sku (key -1 -> -2)",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_file_header_and_execution[01_gross_to_net_waterfall.sql]",
+    "seconds": 6.5
+  },
+  {
+    "id": "M13",
+    "description": "NULL sku_id no longer mapped to the bucket in fct_deductions",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_file_header_and_execution[01_gross_to_net_waterfall.sql]",
+    "seconds": 6.3
+  },
+  {
+    "id": "M14",
+    "description": "unresolved (pending) disputes counted as resolved/lost",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_05_filing_lag_cohorts_match_raw_and_faster_wins_more",
+    "seconds": 7.3
+  },
+  {
+    "id": "M15",
+    "description": "today's date instead of the fixed as-of date in ageing",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_04_open_balance_and_buckets_match_raw",
+    "seconds": 7.1
+  },
+  {
+    "id": "M16",
+    "description": "z-score baseline includes the current month (11 preceding .. current row)",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_file_header_and_execution[07_anomaly_zscores.sql]",
+    "seconds": 7.0
+  },
+  {
+    "id": "M17",
+    "description": "z-score sign flipped",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_07_anomalies_find_the_planted_event_and_not_too_many_others",
+    "seconds": 7.2
+  },
+  {
+    "id": "M18",
+    "description": "forecast leakage: training fold includes the origin month",
+    "status": "KILLED",
+    "caught_by": "tests/test_findings.py::test_readme_numbers_match_independent_raw_table_sql",
+    "seconds": 10.2
+  },
+  {
+    "id": "M19",
+    "description": "dashboard: reason filter silently ignored in every page query",
+    "status": "KILLED",
+    "caught_by": "tests/test_dashboard.py::test_filters_move_results_in_the_expected_direction",
+    "seconds": 7.2
+  },
+  {
+    "id": "M20",
+    "description": "duplicate payments double-count (payments unioned with themselves)",
+    "status": "KILLED",
+    "caught_by": "tests/test_models.py::test_payments_reconcile_to_raw",
+    "seconds": 16.2
+  },
+  {
+    "id": "M21",
+    "description": "metric macro changed in one place: partial wins no longer wins",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_05_filing_lag_cohorts_match_raw_and_faster_wins_more",
+    "seconds": 7.2
+  },
+  {
+    "id": "M22",
+    "description": "analysis 05 re-derives a bucket label instead of using the metrics layer",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_05_filing_lag_cohorts_match_raw_and_faster_wins_more",
+    "seconds": 7.2
+  },
+  {
+    "id": "M23",
+    "description": "net revenue formula subtracts recoveries",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_01_waterfall_components_sum_to_net_and_match_raw",
+    "seconds": 7.0
+  },
+  {
+    "id": "M24",
+    "description": "open balance ignores pending-dispute deductions",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_04_open_balance_and_buckets_match_raw",
+    "seconds": 7.0
+  },
+  {
+    "id": "M25",
+    "description": "recoverable candidates include accepted (verified-valid) deductions",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_10_recoverable_dollars_match_independent_computation",
+    "seconds": 7.2
+  },
+  {
+    "id": "M26",
+    "description": "seasonal naive off by one month",
+    "status": "KILLED",
+    "caught_by": "tests/test_findings.py::test_readme_numbers_match_independent_raw_table_sql",
+    "seconds": 10.3
+  },
+  {
+    "id": "M27",
+    "description": "generator: Retailer A fine multiplier 3 -> 1 (pattern 1 removed)",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_03_fine_outlier_and_sku_concentration_with_unattributed_bucket",
+    "seconds": 7.0
+  },
+  {
+    "id": "M28",
+    "description": "validator: duplicate-payment rule threshold off (> 1 -> > 2)",
+    "status": "KILLED",
+    "caught_by": "tests/test_validator.py::test_dirty_load_has_exactly_the_injected_defects",
+    "seconds": 21.7
+  },
+  {
+    "id": "M29",
+    "description": "days to resolve: arguments reversed (negative days)",
+    "status": "KILLED",
+    "caught_by": "tests/test_metrics.py::test_6_days_to_resolve",
+    "seconds": 15.7
+  },
+  {
+    "id": "M30",
+    "description": "payment lag no longer weighted by amount paid",
+    "status": "KILLED",
+    "caught_by": "tests/test_analysis.py::test_08_payment_lag_drift_flags_retailer_b_and_matches_raw",
+    "seconds": 6.9
+  }
+]
