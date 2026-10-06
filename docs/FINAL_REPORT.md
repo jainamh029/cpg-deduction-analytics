@@ -1,5 +1,7 @@
 # Final report (SYNTHETIC data project)
 
+> **Superseded in part by the independent audit:** see [AUDIT_REPORT.md](AUDIT_REPORT.md). Test counts, the "least confident" list and several statements below were written before the audit and are corrected there (for example, the suite is larger, the README is verified exhaustively, and the recoverable-dollar figure is now a range).
+
 > All data is synthetic. Not Confido's data or schema. Command output behind every claim is in
 > [BUILD_LOG.md](BUILD_LOG.md); design choices are in [DECISIONS.md](DECISIONS.md).
 
