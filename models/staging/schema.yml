@@ -1,0 +1,124 @@
+version: 2
+
+models:
+  - name: stg_retailers
+    description: "SYNTHETIC data. Grain: one row per retailer. Typed/renamed copy of raw.retailers."
+    columns:
+      - name: retailer_id
+        data_tests: [unique, not_null]
+      - name: channel
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [grocery, mass, club, drug, convenience, ecommerce]
+      - name: payment_terms_days
+        data_tests: [not_null]
+
+  - name: stg_skus
+    description: "Grain: one row per SKU."
+    columns:
+      - name: sku_id
+        data_tests: [unique, not_null]
+      - name: list_price
+        data_tests: [non_negative]
+
+  - name: stg_invoices
+    description: "Grain: one row per invoice."
+    columns:
+      - name: invoice_id
+        data_tests: [unique, not_null]
+      - name: retailer_id
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: "ref('stg_retailers')", field: retailer_id}}
+      - name: gross_amount
+        data_tests: [non_negative]
+
+  - name: stg_invoice_lines
+    description: "Grain: one row per (invoice, SKU)."
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [invoice_id, sku_id]
+    columns:
+      - name: invoice_id
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: "ref('stg_invoices')", field: invoice_id}}
+      - name: sku_id
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: "ref('stg_skus')", field: sku_id}}
+
+  - name: stg_payments
+    description: "Grain: one row per payment."
+    columns:
+      - name: payment_id
+        data_tests: [unique, not_null]
+      - name: invoice_id
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: "ref('stg_invoices')", field: invoice_id}}
+      - name: paid_amount
+        data_tests: [non_negative]
+
+  - name: stg_deductions
+    description: >
+      Grain: one row per deduction. sku_id is NULLABLE (many deductions carry no line reference);
+      see docs/METRICS.md for how SKU-level metrics treat the unattributed bucket.
+    columns:
+      - name: deduction_id
+        data_tests: [unique, not_null]
+      - name: invoice_id
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: "ref('stg_invoices')", field: invoice_id}}
+      - name: retailer_id
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: "ref('stg_retailers')", field: retailer_id}}
+      - name: sku_id
+        data_tests:
+          - relationships: {arguments: {to: "ref('stg_skus')", field: sku_id}}
+      - name: amount
+        data_tests: [not_null, non_negative]
+      - name: reason_code
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [shortage, promo, compliance_fine, pricing, damage, other]
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [open, disputed, written_off, recovered, accepted]
+
+  - name: stg_disputes
+    description: "Grain: one row per dispute (at most one per deduction)."
+    columns:
+      - name: dispute_id
+        data_tests: [unique, not_null]
+      - name: deduction_id
+        data_tests:
+          - unique
+          - not_null
+          - relationships: {arguments: {to: "ref('stg_deductions')", field: deduction_id}}
+      - name: outcome
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [won, partial, lost, pending]
+      - name: recovered_amount
+        data_tests: [non_negative]
+
+  - name: stg_promotions
+    description: "Grain: one row per promotion (retailer x SKU x window)."
+    columns:
+      - name: promo_id
+        data_tests: [unique, not_null]
+      - name: retailer_id
+        data_tests:
+          - relationships: {arguments: {to: "ref('stg_retailers')", field: retailer_id}}
+      - name: sku_id
+        data_tests:
+          - relationships: {arguments: {to: "ref('stg_skus')", field: sku_id}}

@@ -3,5 +3,5 @@ cpg_deductions:
   outputs:
     dev:
       type: duckdb
-      path: warehouse/warehouse.duckdb
+      path: "{{ env_var('WAREHOUSE_PATH', 'warehouse/warehouse.duckdb') }}"
       threads: 4

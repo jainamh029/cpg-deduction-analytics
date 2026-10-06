@@ -1,0 +1,16 @@
+version: 2
+
+# SYNTHETIC data. The raw schema is switchable so the whole pipeline can be pointed at the
+# unconstrained dirty load:  dbt build --vars '{raw_schema: raw_dirty}'
+sources:
+  - name: raw
+    schema: "{{ var('raw_schema', 'raw') }}"
+    tables:
+      - name: retailers
+      - name: skus
+      - name: invoices
+      - name: invoice_lines
+      - name: payments
+      - name: deductions
+      - name: disputes
+      - name: promotions

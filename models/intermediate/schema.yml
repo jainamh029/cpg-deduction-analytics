@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: int_invoice_lines
+    description: "Grain: one row per invoice. Lines aggregated to the invoice before joining."
+    columns:
+      - name: invoice_id
+        data_tests: [unique, not_null]
+  - name: int_invoice_payments
+    description: "Grain: one row per invoice with at least one payment."
+    columns:
+      - name: invoice_id
+        data_tests: [unique, not_null]
+  - name: int_deduction_disputes
+    description: "Grain: one row per deduction, with its (0 or 1) dispute folded in. No fan-out."
+    columns:
+      - name: deduction_id
+        data_tests: [unique, not_null]
+  - name: int_invoice_deductions
+    description: "Grain: one row per invoice with at least one deduction."
+    columns:
+      - name: invoice_id
+        data_tests: [unique, not_null]

@@ -25,10 +25,12 @@ run() { # run <tail-lines> <command...>
 
 run 5 .venv/bin/ruff check .
 run 5 .venv/bin/ruff format --check .
-run 12 .venv/bin/pytest
 if [ "$use_dbt" = 1 ]; then
+  run 2 .venv/bin/python -m data_gen.load
   run 14 .venv/bin/dbt build
+  export CPG_USE_BUILT=1
 fi
+run 12 .venv/bin/pytest
 
 if [ "$failed" = 1 ]; then exit 1; fi
 {

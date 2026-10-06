@@ -1,0 +1,79 @@
+version: 2
+
+models:
+  - name: dim_retailer
+    description: "SYNTHETIC data. Grain: one row per retailer."
+    columns:
+      - name: retailer_id
+        data_tests: [unique, not_null]
+
+  - name: dim_sku
+    description: >
+      Grain: one row per SKU plus one '(unattributed)' row with sku_key = -1, so deductions without
+      a SKU land in an explicit bucket instead of being dropped.
+    columns:
+      - name: sku_key
+        data_tests: [unique, not_null]
+
+  - name: fct_invoices
+    description: >
+      Grain: one row per invoice. Payments, deductions and recoveries are pre-aggregated to the
+      invoice, so gross_amount is never multiplied.
+    columns:
+      - name: invoice_id
+        data_tests: [unique, not_null]
+      - name: retailer_id
+        data_tests:
+          - relationships: {arguments: {to: "ref('dim_retailer')", field: retailer_id}}
+      - name: gross_amount
+        data_tests: [non_negative]
+
+  - name: fct_deductions
+    description: "Grain: one row per deduction (dispute columns null if never disputed)."
+    columns:
+      - name: deduction_id
+        data_tests: [unique, not_null]
+      - name: invoice_id
+        data_tests:
+          - relationships: {arguments: {to: "ref('fct_invoices')", field: invoice_id}}
+      - name: retailer_id
+        data_tests:
+          - relationships: {arguments: {to: "ref('dim_retailer')", field: retailer_id}}
+      - name: sku_key
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: "ref('dim_sku')", field: sku_key}}
+      - name: reason_code
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [shortage, promo, compliance_fine, pricing, damage, other]
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [open, disputed, written_off, recovered, accepted]
+
+  - name: fct_disputes
+    description: "Grain: one row per dispute (many-to-one to its deduction)."
+    columns:
+      - name: dispute_id
+        data_tests: [unique, not_null]
+      - name: deduction_id
+        data_tests:
+          - unique
+          - relationships: {arguments: {to: "ref('fct_deductions')", field: deduction_id}}
+      - name: outcome
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [won, partial, lost, pending]
+
+  - name: fct_promotions
+    description: "Grain: one row per promotion (retailer x SKU x window)."
+    columns:
+      - name: promo_id
+        data_tests: [unique, not_null]
+      - name: retailer_id
+        data_tests:
+          - relationships: {arguments: {to: "ref('dim_retailer')", field: retailer_id}}

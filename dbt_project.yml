@@ -6,6 +6,11 @@ profile: cpg_deductions
 model-paths: ["models"]
 macro-paths: ["macros"]
 
+vars:
+  # Mirrors data_gen.config.Config.end_date (a test asserts they agree).
+  as_of_date: "2025-12-31"
+  raw_schema: raw
+
 clean-targets: ["target", "dbt_packages"]
 
 models:

@@ -59,3 +59,18 @@ Exactly 3 orphaned deductions, 3 duplicate payments and 3 negative deduction amo
 
 ## D18. Observed pattern 1 is 3.66x, not 3.0x
 The A-vs-peer-median fine ratio is a draw from a distribution; with the fixed seed it is 3.66x (inside the 2.2-4.0 test range). I kept it rather than re-tuning the seed to hit exactly 3, per the "visible but imperfect" requirement.
+
+## D19. dbt notes: arguments syntax, schema layout, materialization
+dbt 1.12 expects generic-test arguments under `arguments:`; relationship tests use flow-style YAML for brevity. Custom schemas map exactly to staging/intermediate/marts/metrics. Staging, intermediate and metrics are views; marts are tables (dashboard and analysis read them repeatedly). `dbt build` on the full dataset takes ~3 s, so dbt did not become a time sink; the fallback runner was not needed (time spent on dbt in total: well under the half-day box).
+
+## D20. Fan-out handling
+Child tables are aggregated to the parent grain in `intermediate` before any join (lines/payments/deductions to invoice; disputes to deduction). Mart totals are asserted equal to raw totals in pytest (gross, deductions, recoveries, payments), and row counts equal raw counts (dim_sku is raw + the one unattributed row).
+
+## D21. Unattributed SKU bucket implemented as a dimension row
+`dim_sku` has a real row `sku_key = -1, sku_label = '(unattributed)'`; `fct_deductions.sku_key = coalesce(sku_id, -1)`. Any join on `sku_key` keeps NULL-SKU deductions in an explicit bucket instead of dropping them (tested: inner join to dim_sku loses $0).
+
+## D22. Indexes
+No explicit indexes beyond the PK/FK constraints in `raw`. DuckDB is columnar with zone maps; mart tables are scanned or aggregated, not point-looked-up. Any index added later must carry a measured EXPLAIN before/after in docs/PERFORMANCE.md; none has been added.
+
+## D23. Dirty-source test scope
+The `raw_dirty` run builds and tests only `staging` (dbt skips downstream nodes of failed tests, and downstream marts on dirty data are not a deliverable). The test asserts that all staging views build and that exactly two dbt data tests fail (deduction -> invoice relationship, non-negative deduction amount). The duplicate payment is caught by the SQL validator, not dbt, because its payment_id is unique by construction.

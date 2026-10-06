@@ -28,10 +28,10 @@ lint: $(STAMP)
 	$(BIN)/ruff check .
 	$(BIN)/ruff format --check .
 
-test: $(STAMP)
-	$(BIN)/pytest
+test: build
+	CPG_USE_BUILT=1 $(BIN)/pytest
 
-build: $(STAMP)
+build: data
 	$(BIN)/dbt build
 
 docs: $(STAMP)
