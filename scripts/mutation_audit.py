@@ -223,8 +223,8 @@ MUTATIONS = [
         "M28",
         "validator: duplicate-payment rule threshold off (> 1 -> > 2)",
         "warehouse/validate.sql",
-        "having count(*) > 1);",
-        "having count(*) > 2);",
+        "group by invoice_id, paid_date, paid_amount having count(*) > 1",
+        "group by invoice_id, paid_date, paid_amount having count(*) > 2",
     ),
     Mutation(
         "M29",
@@ -240,7 +240,37 @@ MUTATIONS = [
         "sum(days_to_pay * paid_amount) / nullif(sum(paid_amount), 0)",
         "avg(days_to_pay)",
     ),
-]
+    Mutation("M31", "recovery cap removed: re-filed disputes can recover more than the deduction", "models/intermediate/int_deduction_disputes.sql",
+             "least(coalesce(x.recovered_amount, 0), greatest(d.amount, 0)) as recovered_amount", "coalesce(x.recovered_amount, 0) as recovered_amount"),
+    Mutation("M32", "analysis 02: calendar scaffold join made inner (gap months vanish, LAG skips them)", "sql/analysis/02_deduction_rate_trend.sql",
+             "left join metrics.m_retailer_month as m", "inner join metrics.m_retailer_month as m"),
+    Mutation("M33", "make build no longer runs the validation gate", "Makefile", "build: validate\n", "build: data\n"),
+    Mutation("M34", "validator: duplicate-deduction rule threshold off (> 1 -> > 2)", "warehouse/validate.sql",
+             "group by invoice_id, reason_code, sku_id, deduction_date, amount having count(*) > 1", "group by invoice_id, reason_code, sku_id, deduction_date, amount having count(*) > 2"),
+    Mutation("M35", "dashboard: retailer filter ignored (always retailer 1)", "dashboard/data.py",
+             "list_contains(?::INTEGER[], {prefix}retailer_id)", "list_contains(?::INTEGER[], 1 + 0 * {prefix}retailer_id)"),
+    Mutation("M36", "forecast: sMAPE missing its factor of 2", "forecast/model.py",
+             "return float(np.mean(2 * np.abs(actual - forecast) / (np.abs(actual) + np.abs(forecast))))", "return float(np.mean(np.abs(actual - forecast) / (np.abs(actual) + np.abs(forecast))))"),
+    Mutation("M37", "forecast: MASE scale ignores the seasonal lag (lag 1 instead of 12)", "forecast/model.py",
+             "return float(np.mean(np.abs(history[SEASON:] - history[:-SEASON])))", "return float(np.mean(np.abs(history[1:] - history[:-1])))"),
+    Mutation("M38", "analysis 06: under-invested margin removed (0.10 -> 0.0), the null-data false-positive fix undone", "sql/analysis/06_recovery_underinvestment.sql",
+             "win_rate >= all_reason_win_rate + 0.10", "win_rate >= all_reason_win_rate + 0.0"),
+    Mutation("M39", "analysis 07: z threshold back to 3 (null-data false positives return)", "sql/analysis/07_anomaly_zscores.sql",
+             "where abs(z_score) >= 4.5", "where abs(z_score) >= 3"),
+    Mutation("M40", "recovery scenarios: base realization factor 0.75 -> 0.70", "models/metrics/m_recovery_scenarios.sql", "('base', 0.75)", "('base', 0.70)"),
+    Mutation("M41", "generator: Retailer B lag drift removed (pattern 4)", "data_gen/generate.py", "B_LAG_DRIFT_TOTAL = 12.0", "B_LAG_DRIFT_TOTAL = 0.0"),
+    Mutation("M42", "atomic load replaced by an in-place rebuild of the final file", "data_gen/load.py",
+             'building = path.with_name(f"{path.stem}.building{path.suffix}")', "building = path"),
+]  # fmt: skip
+
+# Cheap, high-signal files first, slow sweep/pipeline files last: a killed run stops at its first failure.
+TEST_ORDER = [
+    "tests/test_analysis.py", "tests/test_metrics.py", "tests/test_models.py", "tests/test_messy_conditions.py",
+    "tests/test_hygiene.py", "tests/test_validator.py", "tests/test_forecast.py", "tests/test_dashboard.py",
+    "tests/test_findings.py", "tests/test_repo_hygiene.py", "tests/test_toolchain.py", "tests/test_null_pipeline.py",
+    "tests/test_pipeline_robustness.py", "tests/test_dashboard_robustness.py", "tests/test_generator.py",
+    "tests/test_audit_modes.py",
+]  # fmt: skip
 
 
 def run_one(m: Mutation) -> dict:
@@ -252,7 +282,7 @@ def run_one(m: Mutation) -> dict:
     path.write_text(original.replace(m.old, m.new))
     start = time.time()
     try:
-        proc = subprocess.run([sys.executable, "-m", "pytest", "-x", "-q", "-rfE", "-p", "no:cacheprovider"],
+        proc = subprocess.run([sys.executable, "-m", "pytest", "-x", "-q", "-rfE", "-p", "no:cacheprovider", *TEST_ORDER],
                               cwd=ROOT, capture_output=True, text=True, check=False)  # fmt: skip
     finally:
         path.write_text(original)
