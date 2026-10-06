@@ -1,0 +1,259 @@
+{
+ "planted_after": [
+  {
+   "pattern": "p1",
+   "effect": "Retailer A fines vs peers (x)",
+   "detected": 20,
+   "runs": 20,
+   "mean": 2.909542321044444,
+   "min": 2.0389396075945316,
+   "max": 3.5625014198664835,
+   "false_positives": 0
+  },
+  {
+   "pattern": "p2",
+   "effect": "Jan-Feb promo spike (x)",
+   "detected": 20,
+   "runs": 20,
+   "mean": 2.445238897883729,
+   "min": 2.0567306471815785,
+   "max": 2.7916055593801135,
+   "false_positives": null
+  },
+  {
+   "pattern": "p3",
+   "effect": "Shortage win rate",
+   "detected": 20,
+   "runs": 20,
+   "mean": 0.7711424551933475,
+   "min": 0.7529194837123541,
+   "max": 0.8067967275015733,
+   "false_positives": 0
+  },
+  {
+   "pattern": "p4",
+   "effect": "Retailer B lag change over 6 months (days)",
+   "detected": 20,
+   "runs": 20,
+   "mean": 9.114051865948644,
+   "min": 8.006866502260529,
+   "max": 9.641103808775057,
+   "false_positives": 0
+  },
+  {
+   "pattern": "p5",
+   "effect": "YoY revenue growth",
+   "detected": 20,
+   "runs": 20,
+   "mean": 0.0794227527863289,
+   "min": 0.07143274026887625,
+   "max": 0.08765793257777499,
+   "false_positives": null
+  },
+  {
+   "pattern": "p7",
+   "effect": "Planted anomaly flagged (abs z >= 4.5)",
+   "detected": 19,
+   "runs": 20,
+   "mean": 6.0,
+   "min": 2.0,
+   "max": 11.0,
+   "false_positives": 4.85
+  }
+ ],
+ "planted_before": [
+  {
+   "pattern": "p1",
+   "effect": "Retailer A fines vs peers (x)",
+   "detected": 20,
+   "runs": 20,
+   "mean": 2.909542321044444,
+   "min": 2.0389396075945316,
+   "max": 3.5625014198664835,
+   "false_positives": 0
+  },
+  {
+   "pattern": "p2",
+   "effect": "Jan-Feb promo spike (x)",
+   "detected": 20,
+   "runs": 20,
+   "mean": 2.445238897883729,
+   "min": 2.0567306471815785,
+   "max": 2.7916055593801135,
+   "false_positives": null
+  },
+  {
+   "pattern": "p3",
+   "effect": "Shortage win rate",
+   "detected": 20,
+   "runs": 20,
+   "mean": 0.7711424551933475,
+   "min": 0.7529194837123541,
+   "max": 0.8067967275015733,
+   "false_positives": 0
+  },
+  {
+   "pattern": "p4",
+   "effect": "Retailer B lag change over 6 months (days)",
+   "detected": 20,
+   "runs": 20,
+   "mean": 9.114051865948644,
+   "min": 8.006866502260529,
+   "max": 9.641103808775057,
+   "false_positives": 0
+  },
+  {
+   "pattern": "p5",
+   "effect": "YoY revenue growth",
+   "detected": 20,
+   "runs": 20,
+   "mean": 0.0794227527863289,
+   "min": 0.07143274026887625,
+   "max": 0.08765793257777499,
+   "false_positives": null
+  },
+  {
+   "pattern": "p7",
+   "effect": "Planted anomaly flagged (abs z >= 4.5)",
+   "detected": 20,
+   "runs": 20,
+   "mean": 35.05,
+   "min": 24.0,
+   "max": 43.0,
+   "false_positives": 33.25
+  }
+ ],
+ "null_before": {
+  "runs": 20,
+  "p1_max_ratio": 1.980559011487568,
+  "p1_mean_ratio": 1.5728080477497475,
+  "p1_flagged_runs": 0,
+  "p2_max_median_spike": 1.2727101127838198,
+  "p2_detected_runs": 0,
+  "p2_retailer_years_spiking_mean": 1.85,
+  "p3_runs_with_a_flag": 19,
+  "p3_flags_per_run": 1.65,
+  "p4_max_change_days": 1.4780438760800507,
+  "p4_detected_runs": 0,
+  "p5_detected_runs": 0,
+  "anomalies_mean": 25.65,
+  "anomalies_min": 18,
+  "anomalies_max": 31,
+  "recoverable_180_base_mean": 644122.2200307145,
+  "filing_lag_win_gap_mean": -0.0015598588324696183
+ },
+ "null_after": {
+  "runs": 20,
+  "p1_max_ratio": 1.980559011487568,
+  "p1_mean_ratio": 1.5728080477497475,
+  "p1_flagged_runs": 0,
+  "p2_max_median_spike": 1.2727101127838198,
+  "p2_detected_runs": 0,
+  "p2_retailer_years_spiking_mean": 1.85,
+  "p3_runs_with_a_flag": 0,
+  "p3_flags_per_run": 0.0,
+  "p4_max_change_days": 1.4780438760800507,
+  "p4_detected_runs": 0,
+  "p5_detected_runs": 0,
+  "anomalies_mean": 3.1,
+  "anomalies_min": 1,
+  "anomalies_max": 5,
+  "recoverable_180_base_mean": 644122.2200307145,
+  "filing_lag_win_gap_mean": -0.0015598588324696183
+ },
+ "bias": [
+  {
+   "bias": "off",
+   "history_estimate_180": 1058386.6677338947,
+   "oracle_180": 1036108.132927853,
+   "implied_realization_factor": 0.9800686557809369,
+   "shortage_observed_win_rate": 0.7669266847897386,
+   "shortage_true_win_prob_undisputed": 0.7701982872827474,
+   "shortage_potential_estimate": 1773676.6867565282,
+   "shortage_potential_oracle": 1773522.6938037165,
+   "shortage_flagged_under_invested": 1.0
+  },
+  {
+   "bias": "0",
+   "history_estimate_180": 1053964.4477657338,
+   "oracle_180": 1034511.3182642598,
+   "implied_realization_factor": 0.9829463508408542,
+   "shortage_observed_win_rate": 0.7663708106241959,
+   "shortage_true_win_prob_undisputed": 0.7643649817216898,
+   "shortage_potential_estimate": 1766029.7772444151,
+   "shortage_potential_oracle": 1761592.7256317455,
+   "shortage_flagged_under_invested": 1.0
+  },
+  {
+   "bias": "0.5",
+   "history_estimate_180": 1165296.1322375478,
+   "oracle_180": 1013533.7111108825,
+   "implied_realization_factor": 0.8700959379278036,
+   "shortage_observed_win_rate": 0.8124727744304995,
+   "shortage_true_win_prob_undisputed": 0.7541764709930452,
+   "shortage_potential_estimate": 1861646.2517242886,
+   "shortage_potential_oracle": 1737161.1258365728,
+   "shortage_flagged_under_invested": 1.0
+  },
+  {
+   "bias": "1",
+   "history_estimate_180": 1289963.3796086484,
+   "oracle_180": 1028065.7096980191,
+   "implied_realization_factor": 0.7970905190102893,
+   "shortage_observed_win_rate": 0.8562653382546367,
+   "shortage_true_win_prob_undisputed": 0.7463506257585579,
+   "shortage_potential_estimate": 1981362.1436010955,
+   "shortage_potential_oracle": 1732479.4730828153,
+   "shortage_flagged_under_invested": 1.0
+  },
+  {
+   "bias": "1.5",
+   "history_estimate_180": 1406611.7970502554,
+   "oracle_180": 1069261.1667158937,
+   "implied_realization_factor": 0.760122353999329,
+   "shortage_observed_win_rate": 0.8797018244439814,
+   "shortage_true_win_prob_undisputed": 0.7453312714740706,
+   "shortage_potential_estimate": 2092978.370561719,
+   "shortage_potential_oracle": 1779902.7159400731,
+   "shortage_flagged_under_invested": 1.0
+  }
+ ],
+ "sensitivity_180d_windows_by_factor": {
+  "60": {
+   "0.25": 129427.01329145553,
+   "0.5": 258854.02658291106,
+   "0.75": 388281.0398743666,
+   "1": 517708.0531658221
+  },
+  "90": {
+   "0.25": 174641.16322520009,
+   "0.5": 349282.32645040017,
+   "0.75": 523923.48967560026,
+   "1": 698564.6529008003
+  },
+  "120": {
+   "0.25": 219552.9186102112,
+   "0.5": 439105.8372204224,
+   "0.75": 658658.7558306336,
+   "1": 878211.6744408448
+  },
+  "180": {
+   "0.25": 306719.48261606,
+   "0.5": 613438.96523212,
+   "0.75": 920158.4478481801,
+   "1": 1226877.93046424
+  },
+  "270": {
+   "0.25": 441720.7711232723,
+   "0.5": 883441.5422465446,
+   "0.75": 1325162.3133698169,
+   "1": 1766883.0844930892
+  },
+  "365": {
+   "0.25": 648777.4804527129,
+   "0.5": 1297554.9609054257,
+   "0.75": 1946332.4413581386,
+   "1": 2595109.9218108514
+  }
+ }
+}

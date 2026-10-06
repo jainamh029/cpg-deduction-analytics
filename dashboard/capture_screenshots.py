@@ -26,11 +26,11 @@ PAGES = {
 }
 
 
-def wait_for_server(timeout: float = 60.0) -> None:
+def wait_for_server(port: int = PORT, timeout: float = 60.0) -> None:
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen(f"http://localhost:{PORT}/_stcore/health", timeout=2):
+            with urllib.request.urlopen(f"http://localhost:{port}/_stcore/health", timeout=2):
                 return
         except OSError:
             time.sleep(0.5)
