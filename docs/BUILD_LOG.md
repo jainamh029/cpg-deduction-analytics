@@ -252,3 +252,21 @@ $ .venv/bin/pytest
 
 ```
 
+## Phase 7b: fresh clone, `make all`
+
+Run in a new temp directory after `git clone`; trimmed to key lines.
+
+```
+.venv/bin/ruff check .
+All checks passed!
+.venv/bin/ruff format --check .
+44 files already formatted
+wrote warehouse/warehouse.duckdb
+20:06:33  Done. PASS=116 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=116
+months=33 folds=252 pooled MAPE: seasonal_naive=0.189, holt_winters=0.186
+wrote forecast/results and forecast/RESULTS.md
+143 passed in 15.60s
+make all   35.65s user 5.49s system 55% cpu 1:13.92 total
+exit code: 0
+```
+
