@@ -348,3 +348,49 @@ make all   39.74s user 6.08s system 56% cpu 1:21.19 total
 exit code: 0; tracked files changed by make all: 0
 ```
 
+## Audit: final gate
+
+Run on 2026-10-06 17:25 EDT. Output trimmed to the last lines of each command.
+
+```
+$ .venv/bin/ruff check .
+All checks passed!
+
+$ .venv/bin/ruff format --check .
+66 files already formatted
+
+$ .venv/bin/python -m data_gen.load
+wrote warehouse/warehouse.duckdb
+
+$ .venv/bin/python -m warehouse.validate --schema raw
+validation passed for schema raw: 34 rules, 0 findings
+
+$ .venv/bin/dbt build
+21:23:41  112 of 115 OK created sql view model metrics.m_recoverable_candidates .......... [OK in 0.01s]
+21:23:41  107 of 115 OK created sql view model metrics.m_deductions_monthly .............. [OK in 0.11s]
+21:23:41  113 of 115 START test not_null_m_recoverable_candidates_deduction_id ........... [RUN]
+21:23:41  114 of 115 START test unique_m_recoverable_candidates_deduction_id ............. [RUN]
+21:23:41  115 of 115 START test unique_combination_m_deductions_monthly_retailer_id__reason_code__deduction_month  [RUN]
+21:23:41  113 of 115 PASS not_null_m_recoverable_candidates_deduction_id ................. [PASS in 0.03s]
+21:23:41  115 of 115 PASS unique_combination_m_deductions_monthly_retailer_id__reason_code__deduction_month  [PASS in 0.02s]
+21:23:41  114 of 115 PASS unique_m_recoverable_candidates_deduction_id ................... [PASS in 0.03s]
+21:23:41  
+21:23:41  Finished running 1 project hook, 8 table models, 90 data tests, 17 view models in 0 hours 0 minutes and 1.42 seconds (1.42s).
+21:23:41  
+21:23:41  Completed successfully
+21:23:41  
+21:23:41  Done. PASS=116 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=116
+
+$ .venv/bin/python -m forecast.run
+months=33 folds=252 pooled MAPE: seasonal_naive=0.189, holt_winters=0.186
+wrote forecast/results and forecast/RESULTS.md
+
+$ .venv/bin/pytest
+........................................................................ [ 30%]
+........................................................................ [ 61%]
+........................................................................ [ 91%]
+....................                                                     [100%]
+236 passed in 87.98s (0:01:27)
+
+```
+
