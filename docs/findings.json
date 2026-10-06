@@ -43,35 +43,35 @@
     "slow_bucket": "61+",
     "slow_win_rate": 0.3915441176470588,
     "by_reason": {
-      "pricing": {
-        "dispute_rate": 0.38296794502063375,
-        "win_rate": 0.6427228281308762,
-        "deduction_amount": 2826184.63
-      },
-      "shortage": {
-        "dispute_rate": 0.1678007700806346,
-        "win_rate": 0.8032154340836013,
-        "deduction_amount": 4582553.88
-      },
-      "promo": {
-        "dispute_rate": 0.05791562423444958,
-        "win_rate": 0.4846153846153846,
-        "deduction_amount": 9981951.98
-      },
-      "other": {
-        "dispute_rate": 0.33146905992635445,
-        "win_rate": 0.5189289012003694,
-        "deduction_amount": 1989586.57
+      "compliance_fine": {
+        "dispute_rate": 0.3519568385982584,
+        "win_rate": 0.5184584178498985,
+        "deduction_amount": 2612791.88
       },
       "damage": {
         "dispute_rate": 0.2985086198611837,
         "win_rate": 0.451346893897746,
         "deduction_amount": 1831790.52
       },
-      "compliance_fine": {
-        "dispute_rate": 0.3519568385982584,
-        "win_rate": 0.5184584178498985,
-        "deduction_amount": 2612791.88
+      "other": {
+        "dispute_rate": 0.33146905992635445,
+        "win_rate": 0.5189289012003694,
+        "deduction_amount": 1989586.57
+      },
+      "pricing": {
+        "dispute_rate": 0.38296794502063375,
+        "win_rate": 0.6427228281308762,
+        "deduction_amount": 2826184.63
+      },
+      "promo": {
+        "dispute_rate": 0.05791562423444958,
+        "win_rate": 0.4846153846153846,
+        "deduction_amount": 9981951.98
+      },
+      "shortage": {
+        "dispute_rate": 0.1678007700806346,
+        "win_rate": 0.8032154340836013,
+        "deduction_amount": 4582553.88
       }
     }
   },

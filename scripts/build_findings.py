@@ -66,7 +66,11 @@ def headline(con, years: float) -> dict:
 
 
 def finding1(con, years: float) -> dict:
-    reasons = con.execute("select * from metrics.m_reason_recovery").df().set_index("reason_code")
+    reasons = (
+        con.execute("select * from metrics.m_reason_recovery order by reason_code")
+        .df()
+        .set_index("reason_code")
+    )
     s = reasons.loc["shortage"]
     others = row(
         con,
