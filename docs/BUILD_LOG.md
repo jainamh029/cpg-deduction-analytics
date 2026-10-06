@@ -55,3 +55,40 @@ $ .venv/bin/pytest
 
 ```
 
+## Phase 3: Metrics layer
+
+Run on 2026-10-06 15:50 EDT. Output trimmed to the last lines of each command.
+
+```
+$ .venv/bin/ruff check .
+All checks passed!
+
+$ .venv/bin/ruff format --check .
+24 files already formatted
+
+$ .venv/bin/python -m data_gen.load
+wrote /Users/jainamshah/cpg-deduction-analytics/warehouse/warehouse.duckdb
+
+$ .venv/bin/dbt build
+19:49:52  110 of 113 PASS unique_m_reason_recovery_reason_code ........................... [PASS in 0.02s]
+19:49:52  109 of 113 PASS unique_combination_m_deductions_monthly_retailer_id__reason_code__deduction_month  [PASS in 0.02s]
+19:49:52  111 of 113 START sql view model metrics.m_recoverable_candidates ............... [RUN]
+19:49:52  111 of 113 OK created sql view model metrics.m_recoverable_candidates .......... [OK in 0.01s]
+19:49:52  112 of 113 START test not_null_m_recoverable_candidates_deduction_id ........... [RUN]
+19:49:52  113 of 113 START test unique_m_recoverable_candidates_deduction_id ............. [RUN]
+19:49:53  112 of 113 PASS not_null_m_recoverable_candidates_deduction_id ................. [PASS in 0.03s]
+19:49:53  113 of 113 PASS unique_m_recoverable_candidates_deduction_id ................... [PASS in 0.03s]
+19:49:53  
+19:49:53  Finished running 1 project hook, 6 table models, 89 data tests, 18 view models in 0 hours 0 minutes and 1.29 seconds (1.29s).
+19:49:53  
+19:49:53  Completed successfully
+19:49:53  
+19:49:53  Done. PASS=114 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=114
+
+$ .venv/bin/pytest
+.......................ss............................................... [ 98%]
+.                                                                        [100%]
+71 passed, 2 skipped in 10.97s
+
+```
+

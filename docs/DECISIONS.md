@@ -74,3 +74,15 @@ No explicit indexes beyond the PK/FK constraints in `raw`. DuckDB is columnar wi
 
 ## D23. Dirty-source test scope
 The `raw_dirty` run builds and tests only `staging` (dbt skips downstream nodes of failed tests, and downstream marts on dirty data are not a deliverable). The test asserts that all staging views build and that exactly two dbt data tests fail (deduction -> invoice relationship, non-negative deduction amount). The duplicate payment is caught by the SQL validator, not dbt, because its payment_id is unique by construction.
+
+## D24. Test correction: metric views are checked for division only
+`tests/test_hygiene.py::test_metric_views_contain_no_division` first called the full `violations()` checker (schema reads, formula patterns, division) on `models/metrics/*.sql`. That was wrong for its stated purpose: the metrics layer is the one place allowed to contain classification logic such as `status in ('open', 'written_off')` (the recoverable-candidate filter), so it tripped the "use metrics.open_amount" rule. **Old assertion:** `violations(text, check_division=True) == []`. **New assertion:** no line of any metric view contains a `/` outside comments and strings. **Why:** the contract is "views apply macros, they do not divide"; formula-reuse rules apply to analysis SQL and dashboard code, which are checked unchanged.
+
+## D25. Metrics as DuckDB macros plus views
+Ratio metrics must work at any grain (retailer-month, reason, SKU, cohort), so each formula is a scalar macro in the `metrics` schema, created once by a dbt on-run-start hook (`macros/metric_definitions.sql`). Views in `models/metrics/` apply them at standard grains; analysis SQL and the dashboard call the same macros. A hygiene test forbids re-deriving formulas elsewhere and requires an explicit `-- non-metric:` note on any division in analysis SQL. Trade-off: macros are expanded at query time, so the warehouse file must carry them (it does; they are persisted in the DuckDB catalog), and a macro change requires `dbt build` to take effect in dependent views' compiled plans.
+
+## D26. Two different "months" for deductions
+Invoice-cohort basis (`m_retailer_month`: deduction attributed to the month of its invoice) for rates and net revenue; deduction-date basis (`m_deductions_monthly`) for operational volume, anomaly detection and forecasting. Both are labelled. Maturity (4 months) and burn-in (3 months) flags handle right- and left-censoring respectively.
+
+## D27. Recoverable dollars is a metric, not an ad hoc query
+It is used by analysis 10, the CFO dashboard page and the README headline, so it lives in the metrics layer (`m_recoverable_candidates`) with the dispute window applied by the caller. Scenario haircuts (selection bias) are an analysis-level assumption, stated in the analysis file and README.

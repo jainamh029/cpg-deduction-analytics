@@ -1,0 +1,41 @@
+version: 2
+
+# Metric formulas live ONLY in macros/metric_definitions.sql (metrics.* macros). These views apply
+# them at a standard grain. Definitions, inclusions and edge cases: docs/METRICS.md. SYNTHETIC data.
+models:
+  - name: m_deduction_detail
+    description: "Grain: one row per deduction, with row-level metric attributes (age, bucket, validity...)."
+    columns:
+      - name: deduction_id
+        data_tests: [unique, not_null]
+      - name: aging_bucket
+        data_tests:
+          - accepted_values: {arguments: {values: ['0-30', '31-60', '61-90', '90+']}}
+      - name: validity_class
+        data_tests:
+          - accepted_values: {arguments: {values: [invalid, valid, unresolved, undetermined]}}
+      - name: sku_key
+        data_tests: [not_null]
+  - name: m_invoice_detail
+    description: "Grain: one row per invoice, with net revenue, days to pay and maturity flag."
+    columns:
+      - name: invoice_id
+        data_tests: [unique, not_null]
+  - name: m_retailer_month
+    description: "Grain: one row per retailer x invoice month (invoice-cohort basis)."
+    data_tests:
+      - unique_combination: {arguments: {combination_of_columns: [retailer_id, invoice_month]}}
+  - name: m_deductions_monthly
+    description: "Grain: one row per retailer x reason x deduction month (deduction-date basis)."
+    data_tests:
+      - unique_combination: {arguments: {combination_of_columns: [retailer_id, reason_code, deduction_month]}}
+  - name: m_reason_recovery
+    description: "Grain: one row per reason code."
+    columns:
+      - name: reason_code
+        data_tests: [unique, not_null]
+  - name: m_recoverable_candidates
+    description: "Grain: one row per never-disputed deduction that is open or written off."
+    columns:
+      - name: deduction_id
+        data_tests: [unique, not_null]
