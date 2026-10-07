@@ -2,22 +2,22 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CPG Deduction Analytics: where retailer deductions drain revenue, and what can be won back</title>
 <meta name="description" content="A synthetic-data analytics project: find where a consumer-goods brand loses money to retailer deductions and how much is recoverable.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%231e40af%27/%3E%3Cpath d=%27M7 22l6-7 4 4 8-10%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272.6%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%232b6a46%27/%3E%3Cpath d=%27M7 22l6-7 4 4 8-10%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272.6%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/style.css">
 <style>
- .hero{padding:4rem 0 2.5rem;background:radial-gradient(60rem 22rem at 80% -10%,color-mix(in srgb,var(--primary-2) 18%,transparent),transparent),radial-gradient(40rem 20rem at 0% 0%,color-mix(in srgb,var(--accent) 12%,transparent),transparent)}
+ .hero{padding:4rem 0 2.5rem;background:radial-gradient(60rem 24rem at 85% -10%,color-mix(in srgb,var(--mint) 38%,transparent),transparent),radial-gradient(36rem 18rem at 0% 0%,color-mix(in srgb,#e2b93b 14%,transparent),transparent)}
  .eyebrow{display:inline-flex;gap:.5rem;align-items:center;font:500 .8rem var(--mono);color:var(--primary);background:var(--soft);border:1px solid var(--line);padding:.25rem .7rem;border-radius:999px}
- h1.big{font-size:clamp(2rem,4.6vw,3.4rem);line-height:1.1;letter-spacing:-.025em;margin:1rem 0;max-width:20ch}
+ h1.big{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:300;line-height:1.08;letter-spacing:-.02em;margin:1rem 0;max-width:20ch}
  h1.big em{font-style:normal;color:var(--primary)} .lede{font-size:1.2rem;color:var(--muted);max-width:46rem}
  .cta{display:flex;flex-wrap:wrap;gap:.8rem;margin:1.6rem 0 2.2rem}
  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.9rem}
  .stat{padding:1rem 1.1rem;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}.stat:hover{transform:translateY(-3px)}
- .stat small{color:var(--muted);display:block;font-size:.82rem}.stat b{font:600 1.9rem var(--mono);letter-spacing:-.02em}
+ .stat small{color:var(--muted);display:block;font-size:.82rem}.stat b{font:900 1.9rem var(--font);letter-spacing:-.02em}
  .stat::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary-2)}.stat.hot::after{background:var(--accent)}
- section{padding:3.2rem 0}section h2{font-size:clamp(1.5rem,3vw,2.1rem);letter-spacing:-.02em;margin:.2rem 0 .4rem}
+ section{padding:3.2rem 0}section h2{font-size:clamp(1.6rem,3.2vw,2.4rem);font-weight:300;letter-spacing:-.015em;margin:.2rem 0 .4rem}
  .kicker{font:500 .8rem var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:.08em}.sub{color:var(--muted);max-width:44rem;margin:0 0 1.6rem}
  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem}
- .pcard{padding:1.2rem;transition:transform .2s,box-shadow .2s}.pcard:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(15,23,42,.12)}
+ .pcard{padding:1.2rem;transition:transform .2s,box-shadow .2s}.pcard:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(49,49,49,.12)}
  .pcard h3{margin:.6rem 0 .3rem;font-size:1.05rem}.pcard p{margin:0;color:var(--muted);font-size:.95rem}
  .ico{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;background:var(--soft);color:var(--primary)}.ico svg{width:22px;height:22px}
  .steps{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:1.2rem;align-items:start}
@@ -25,17 +25,17 @@
  .steplist{display:flex;flex-direction:column;gap:.4rem}
  .step{display:flex;gap:.8rem;align-items:center;text-align:left;font:500 .95rem var(--font);padding:.7rem .8rem;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
  .step:hover{transform:translateX(3px)}.step[aria-selected=true]{border-color:var(--primary-2);background:var(--soft)}
- .step i{font:600 .8rem var(--mono);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--primary);color:#fff;flex:none}[data-theme=dark] .step i{color:#0b1220}
+ .step i{font:600 .8rem var(--mono);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--primary);color:var(--bg);flex:none}
  .panel{padding:1.4rem}.panel h3{margin:.1rem 0 .5rem}.panel p{color:var(--muted)}.panel code{font:.85rem var(--mono);background:var(--soft);padding:.1rem .4rem;border-radius:6px}
  .pipe{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-top:.8rem;font:500 .8rem var(--mono)}
  .pipe span{background:var(--soft);border:1px solid var(--line);padding:.25rem .55rem;border-radius:7px}.pipe b{color:var(--muted)}
  .tabs{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 1rem}
  .tab{font:600 .9rem var(--font);padding:.55rem 1rem;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;transition:background .15s,color .15s}
- .tab:hover{background:var(--soft)}.tab[aria-selected=true]{background:var(--primary);border-color:var(--primary);color:#fff}[data-theme=dark] .tab[aria-selected=true]{color:#0b1220}
+ .tab:hover{background:var(--soft)}.tab[aria-selected=true]{background:var(--btn);border-color:var(--btn);color:var(--btn-ink)}
  .find{display:grid;grid-template-columns:1fr 1.25fr;gap:1.2rem;padding:1.3rem}.find[hidden]{display:none}
  @media(max-width:860px){.find{grid-template-columns:1fr}}
- .find h3{margin:0 0 .4rem;font-size:1.25rem}.find p{color:var(--muted);margin:.4rem 0}
- .big-num{font:600 2.4rem var(--mono);color:var(--primary);letter-spacing:-.03em}.caveat{border-left:3px solid var(--accent);padding:.4rem .8rem;background:color-mix(in srgb,var(--accent) 9%,transparent);border-radius:0 8px 8px 0;font-size:.9rem;color:var(--ink)}
+ .find h3{margin:0 0 .4rem;font-size:1.5rem;font-family:var(--serif);font-weight:400}.find p{color:var(--muted);margin:.4rem 0}
+ .big-num{font:900 2.4rem var(--font);color:var(--primary);letter-spacing:-.03em}.caveat{border-left:3px solid var(--accent);padding:.4rem .8rem;background:color-mix(in srgb,var(--accent) 9%,transparent);border-radius:0 8px 8px 0;font-size:.9rem;color:var(--ink)}
  .chartbox{min-height:320px}.wide{padding:1.2rem;margin-bottom:1rem}
  .trust{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem}.trust .stat b{font-size:1.6rem}
  ul.limits{columns:2;gap:2rem;color:var(--muted);padding-left:1.1rem}@media(max-width:760px){ul.limits{columns:1}}ul.limits li{margin-bottom:.5rem;break-inside:avoid}
@@ -181,7 +181,7 @@ function drawAll() {
   const rec = F.headline.recovered; rows.push({name: "Won back", lo: run - rec, hi: run, kind: "Recovered"}); run -= rec; rows.push({name: "Net lost", lo: 0, hi: run, kind: "Net"});
   embed("chart-waterfall", {data: {values: rows}, height: 300, title: `Of ${money(F.headline.gross)} invoiced, ${money(F.headline.deductions)} was deducted; ${money(F.headline.recovered)} was won back, leaving ${money(run)} net lost to date`,
     mark: {type: "bar", cornerRadiusEnd: 3}, encoding: {x: {field: "name", type: "ordinal", sort: null, title: null, axis: {labelAngle: 0, labelLimit: 90}}, y: {field: "lo", type: "quantitative", axis: {format: "$~s"}, title: null}, y2: {field: "hi"},
-      color: {field: "kind", type: "nominal", scale: {domain: ["Deduction", "Recovered", "Net"], range: [A, "#10b981", H]}, legend: {orient: "top", title: null}}, tooltip: [{field: "name"}, {field: "lo", format: "$,.0f", title: "from"}, {field: "hi", format: "$,.0f", title: "to"}]}});
+      color: {field: "kind", type: "nominal", scale: {domain: ["Deduction", "Recovered", "Net"], range: [A, "#2b6a46", H]}, legend: {orient: "top", title: null}}, tooltip: [{field: "name"}, {field: "lo", format: "$,.0f", title: "from"}, {field: "hi", format: "$,.0f", title: "to"}]}});
   const reasons = Object.entries(F.finding1.by_reason).sort((a, b) => b[1].win_rate - a[1].win_rate);
   embed("chart-f1", {data: {values: reasons.flatMap(([r, v]) => [{reason: label(r), measure: "Share of dollars disputed", v: v.dispute_rate}, {reason: label(r), measure: "Disputes won", v: v.win_rate}])}, height: 300,
     title: `Shortage wins ${Math.round(F.finding1.shortage_win_rate * 100)}% of disputes but only ${Math.round(F.finding1.shortage_dispute_rate * 100)}% of its dollars are disputed`,

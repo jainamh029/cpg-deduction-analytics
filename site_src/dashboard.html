@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dashboard | CPG deduction analytics (synthetic data)</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%231e40af%27/%3E%3Cpath d=%27M7 22l6-7 4 4 8-10%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272.6%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%232b6a46%27/%3E%3Cpath d=%27M7 22l6-7 4 4 8-10%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272.6%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
 <link rel="stylesheet" href="../assets/style.css">
 <style>
- .head{padding:1.6rem 0 .4rem}.head h1{margin:.2rem 0;font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.02em}.head p{margin:0;color:var(--muted);max-width:52rem}
+ .head{padding:1.6rem 0 .4rem}.head h1{margin:.2rem 0;font-size:clamp(1.8rem,3.6vw,2.6rem);font-weight:300;letter-spacing:-.015em}.head p{margin:0;color:var(--muted);max-width:52rem}
  .seg{display:inline-flex;flex-wrap:wrap;gap:.3rem;background:var(--soft);padding:.3rem;border-radius:12px;margin:1rem 0 .8rem;border:1px solid var(--line)}
  .seg button{font:600 .9rem var(--font);padding:.55rem 1rem;border:0;background:transparent;color:var(--muted);border-radius:9px;cursor:pointer;transition:background .15s,color .15s}
- .seg button:hover{color:var(--ink)}.seg button[aria-selected=true]{background:var(--card);color:var(--primary);box-shadow:var(--shadow)}
+ .seg button:hover{color:var(--ink)}.seg button[aria-selected=true]{background:var(--btn);color:var(--btn-ink);box-shadow:var(--shadow)}.seg button[aria-selected=true] small{color:inherit;opacity:.75}
  .seg small{display:block;font-weight:400;font-size:.72rem;color:var(--muted)}
  .layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:1.2rem;align-items:start;padding-bottom:2rem}
  @media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}.filters{display:none}.filters.open{display:block}}
@@ -17,13 +17,13 @@
  .chk{display:flex;align-items:center;gap:.5rem;padding:.2rem .3rem;border-radius:7px;cursor:pointer}.chk:hover{background:var(--soft)}.chk input{accent-color:var(--primary);width:16px;height:16px;cursor:pointer}
  select{width:100%;font:inherit;padding:.45rem;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);margin-bottom:.4rem;cursor:pointer}
  .fbtn{display:none;margin-bottom:.8rem}@media(max-width:900px){.fbtn{display:inline-flex}}
- .chips{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-bottom:1rem}.chip{font:500 .78rem var(--mono);padding:.25rem .65rem;border-radius:999px;background:var(--soft);border:1px solid var(--line);color:var(--ink)}
+ .chips{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-bottom:1rem}.chip{font:700 .78rem var(--font);padding:.25rem .65rem;border-radius:999px;background:var(--soft);border:1px solid var(--line);color:var(--ink)}
  .chip.reset{cursor:pointer;color:var(--primary);background:var(--card)}.chip.reset:hover{background:var(--soft)}
  .note{color:var(--muted);font-size:.88rem;margin:0 0 1rem;padding:.6rem .8rem;border-left:3px solid var(--primary-2);background:var(--soft);border-radius:0 8px 8px 0}
  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.8rem;margin-bottom:1rem}
  .kpi{padding:.9rem 1rem;position:relative;overflow:hidden;transition:transform .2s}.kpi:hover{transform:translateY(-2px)}
  .kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary-2)}.kpi.hot::after{background:var(--accent)}
- .kpi small{color:var(--muted);display:block;font-size:.8rem}.kpi b{font:600 1.7rem var(--mono);letter-spacing:-.02em}
+ .kpi small{color:var(--muted);display:block;font-size:.8rem}.kpi b{font:900 1.7rem var(--font);letter-spacing:-.02em}
  .cc{padding:.8rem;margin-bottom:1rem;overflow:hidden}.cc .hint{font-size:.78rem;color:var(--muted);margin:0 0 .2rem .4rem}
  .vega-embed{width:100%;display:block}.vega-embed canvas{cursor:default}
  .fade{animation:fade .35s ease}@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -197,7 +197,7 @@ function cfo() {
     layer: [{data: {values: actual}, mark: {type: "line", color: B, strokeWidth: 2}, encoding: {x: {field: "month", type: "temporal", title: null}, y: {field: "value", type: "quantitative", axis: {format: "$~s"}, title: null}, tooltip: [{field: "month", type: "temporal", format: "%b %Y"}, {field: "value", format: "$,.0f"}]}},
             {data: {values: proj}, mark: {type: "line", color: A, strokeWidth: 2.5, strokeDash: [6, 3]}, encoding: {x: {field: "month", type: "temporal"}, y: {field: "value", type: "quantitative"}}},
             {data: {values: band}, mark: {type: "area", opacity: 0.2, color: A}, encoding: {x: {field: "month", type: "temporal"}, y: {field: "lo", type: "quantitative"}, y2: {field: "hi"}}}]},
-    "Grey: actual. Blue dashed: Holt-Winters forecast. Band: pooled backtest errors; measured out-of-sample coverage was below its nominal level, and the model is statistically tied with repeating last year.");
+    "Grey: actual. Green dashed: Holt-Winters forecast. Band: pooled backtest errors; measured out-of-sample coverage was below its nominal level, and the model is statistically tied with repeating last year.");
 }
 
 // ------------------------------------------------------------------ shell
