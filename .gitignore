@@ -13,3 +13,4 @@ dashboard/plugins/
 .DS_Store
 .user.yml
 forecast/results/
+site/
