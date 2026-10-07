@@ -7,15 +7,18 @@ part of the site (SQL, code) are rewritten to the GitHub blob URL. Usage: python
 from __future__ import annotations
 
 import argparse
+import json
 import posixpath
 import re
 import shutil
 from pathlib import Path
 
+from data_gen.load import DEFAULT_PATH
+
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
 PAGES = {  # repo path -> site path
-    "README.md": "index.md",
+    "README.md": "memo.md",
     "PLANTED_PATTERNS.md": "PLANTED_PATTERNS.md",
     "forecast/RESULTS.md": "forecast/RESULTS.md",
     **{f"docs/{n}": f"docs/{n}" for n in (
@@ -24,6 +27,7 @@ PAGES = {  # repo path -> site path
     )},
 }  # fmt: skip
 ASSET_DIRS = ["docs/img", "dashboard/screenshots"]
+SITE_ONLY = {"memo.html", "dashboard/"}  # pages that exist only in the built site
 LINK = re.compile(r"(\]\()([^)\s]+)(\))")
 
 LAYOUT = """<!doctype html>
@@ -43,7 +47,7 @@ LAYOUT = """<!doctype html>
  pre code{padding:0} a{color:var(--accent)}
 </style></head><body>
 <div class="banner"><strong>All data is synthetic.</strong> Not Confido's data or schema; findings demonstrate a method on planted patterns.</div>
-<header><a href="{{ site.baseurl }}/">Findings memo</a><a href="{{ site.baseurl }}/docs/AUDIT_REPORT.html">Audit report</a>
+<header><a href="{{ site.baseurl }}/">Overview</a><a href="{{ site.baseurl }}/dashboard/"><strong>Dashboard</strong></a><a href="{{ site.baseurl }}/memo.html">Findings memo</a><a href="{{ site.baseurl }}/docs/AUDIT_REPORT.html">Audit report</a>
 <a href="{{ site.baseurl }}/docs/INTERVIEW_QA.html">Interview Q&amp;A</a><a href="{{ site.baseurl }}/docs/METRICS.html">Metrics</a>
 <a href="{{ site.baseurl }}/docs/data_model.html">Data model</a><a href="{{ site.baseurl }}/forecast/RESULTS.html">Forecast</a>
 <a href="{{ site.baseurl }}/PLANTED_PATTERNS.html">Planted patterns</a><a href="{{ site.baseurl }}/docs/DECISIONS.html">Decisions</a>
@@ -68,6 +72,8 @@ def rewrite(text: str, source: str, repo: str) -> str:
         if re.match(r"^(https?:|mailto:|#)", target):
             return match.group(0)
         path, _, anchor = target.partition("#")
+        if path in SITE_ONLY:
+            return match.group(0)
         resolved = posixpath.normpath(posixpath.join(folder, path))
         in_site = resolved in PAGES or any(resolved.startswith(d + "/") for d in ASSET_DIRS)
         if in_site:
@@ -80,6 +86,16 @@ def rewrite(text: str, source: str, repo: str) -> str:
         return f"{match.group(1)}https://github.com/{repo}/{kind}/main/{resolved}{'#' + anchor if anchor else ''}{match.group(3)}"
 
     return LINK.sub(fix, text)
+
+
+def landing(repo: str) -> str:
+    """The plain-English overview page: site_src/index.md with numbers filled from docs/findings.json."""
+    from scripts.render_readme import render
+
+    findings = json.loads((ROOT / "docs" / "findings.json").read_text())
+    text = render((ROOT / "site_src" / "index.md").read_text(), findings)
+    text = text.replace("{: .button }", "")
+    return rewrite(text, "README.md", repo).replace("memo.html#", "memo.html#")
 
 
 def build(repo: str) -> None:
@@ -96,6 +112,16 @@ def build(repo: str) -> None:
         out = SITE / dest
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text("---\nlayout: default\n---\n{% raw %}\n" + body + "\n{% endraw %}\n")
+    (SITE / "index.md").write_text(
+        "---\nlayout: default\n---\n{% raw %}\n" + landing(repo) + "\n{% endraw %}\n"
+    )
+    (SITE / "dashboard").mkdir(exist_ok=True)
+    shutil.copy(ROOT / "site_src" / "dashboard.html", SITE / "dashboard" / "index.html")
+    from scripts.export_dashboard_data import export
+
+    (SITE / "dashboard" / "data.json").write_text(
+        json.dumps(export(DEFAULT_PATH), separators=(",", ":"))
+    )
     for directory in ASSET_DIRS:
         shutil.copytree(ROOT / directory, SITE / directory)
     print(f"built {SITE.relative_to(ROOT)}: {len(PAGES)} pages")

@@ -7,6 +7,8 @@
 > [docs/findings.json](docs/findings.json); this file is rendered from [docs/README.template.md](docs/README.template.md),
 > and `scripts/verify_readme.py` re-derives every number in it from the raw tables.
 
+**[Open the live site, with an interactive dashboard](https://jainamh029.github.io/cpg-deduction-analytics/)**
+
 **Status:** an independent audit ([docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md)) found and fixed false positives, messy-data gaps and
 overclaims; open items are listed there. CI (`make all` on Ubuntu, Python 3.11) passed on GitHub Actions on its first run after the audit; that is one run, not a track record. The dashboard is
 Streamlit; Metabase was **not built or verified** ([docs/METABASE_NOTES.md](docs/METABASE_NOTES.md)). Screenshots are real captures.
