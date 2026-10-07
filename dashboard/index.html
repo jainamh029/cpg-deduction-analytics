@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard | CPG deduction analytics (synthetic data)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%232b6a46%27/%3E%3Cpath d=%27M7 22l6-7 4 4 8-10%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272.6%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+ .head{padding:1.6rem 0 .4rem}.head h1{margin:.2rem 0;font-size:clamp(1.8rem,3.6vw,2.6rem);font-weight:300;letter-spacing:-.015em}.head p{margin:0;color:var(--muted);max-width:52rem}
+ .seg{display:inline-flex;flex-wrap:wrap;gap:.3rem;background:var(--soft);padding:.3rem;border-radius:12px;margin:1rem 0 .8rem;border:1px solid var(--line)}
+ .seg button{font:600 .9rem var(--font);padding:.55rem 1rem;border:0;background:transparent;color:var(--muted);border-radius:9px;cursor:pointer;transition:background .15s,color .15s}
+ .seg button:hover{color:var(--ink)}.seg button[aria-selected=true]{background:var(--btn);color:var(--btn-ink);box-shadow:var(--shadow)}.seg button[aria-selected=true] small{color:inherit;opacity:.75}
+ .seg small{display:block;font-weight:400;font-size:.72rem;color:var(--muted)}
+ .layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:1.2rem;align-items:start;padding-bottom:2rem}
+ @media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}.filters{display:none}.filters.open{display:block}}
+ .filters{position:sticky;top:70px;padding:1rem;font-size:.9rem;max-height:calc(100vh - 90px);overflow:auto}
+ .filters h3{margin:1rem 0 .4rem;font:600 .72rem var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+ .filters h3:first-child{margin-top:0}.mini{font:500 .75rem var(--font);color:var(--primary);background:none;border:0;cursor:pointer;padding:.1rem .3rem;border-radius:5px}.mini:hover{background:var(--soft)}
+ .chk{display:flex;align-items:center;gap:.5rem;padding:.2rem .3rem;border-radius:7px;cursor:pointer}.chk:hover{background:var(--soft)}.chk input{accent-color:var(--primary);width:16px;height:16px;cursor:pointer}
+ select{width:100%;font:inherit;padding:.45rem;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);margin-bottom:.4rem;cursor:pointer}
+ .fbtn{display:none;margin-bottom:.8rem}@media(max-width:900px){.fbtn{display:inline-flex}}
+ .chips{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-bottom:1rem}.chip{font:700 .78rem var(--font);padding:.25rem .65rem;border-radius:999px;background:var(--soft);border:1px solid var(--line);color:var(--ink)}
+ .chip.reset{cursor:pointer;color:var(--primary);background:var(--card)}.chip.reset:hover{background:var(--soft)}
+ .note{color:var(--muted);font-size:.88rem;margin:0 0 1rem;padding:.6rem .8rem;border-left:3px solid var(--primary-2);background:var(--soft);border-radius:0 8px 8px 0}
+ .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.8rem;margin-bottom:1rem}
+ .kpi{padding:.9rem 1rem;position:relative;overflow:hidden;transition:transform .2s}.kpi:hover{transform:translateY(-2px)}
+ .kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary-2)}.kpi.hot::after{background:var(--accent)}
+ .kpi small{color:var(--muted);display:block;font-size:.8rem}.kpi b{font:900 1.7rem var(--font);letter-spacing:-.02em}
+ .cc{padding:.8rem;margin-bottom:1rem;overflow:hidden}.cc .hint{font-size:.78rem;color:var(--muted);margin:0 0 .2rem .4rem}
+ .vega-embed{width:100%;display:block}.vega-embed canvas{cursor:default}
+ .fade{animation:fade .35s ease}@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+ .tblwrap{padding:.2rem .6rem .6rem}.tblhead{display:flex;justify-content:space-between;align-items:center;margin:.6rem .3rem}.tblhead h3{margin:0;font-size:1rem}
+ .scroll{max-height:440px;overflow:auto}table{border-collapse:collapse;width:100%;font-size:.86rem}
+ th{position:sticky;top:0;background:var(--card);text-align:left;cursor:pointer;user-select:none;white-space:nowrap;font-weight:600;border-bottom:2px solid var(--line);padding:.45rem .6rem}
+ th:hover{color:var(--primary)}th[aria-sort=ascending]::after{content:" \25B2";font-size:.65rem}th[aria-sort=descending]::after{content:" \25BC";font-size:.65rem}
+ td{border-bottom:1px solid var(--line);padding:.4rem .6rem}tbody tr:hover{background:var(--soft)}td.n,th.n{text-align:right;font-family:var(--mono)}
+ .empty{padding:2.5rem;text-align:center;color:var(--muted)}.skel{height:280px;border-radius:12px;background:linear-gradient(90deg,var(--soft),var(--card),var(--soft));background-size:200% 100%;animation:sh 1.2s infinite}@keyframes sh{to{background-position:-200% 0}}
+</style></head><body>
+<a class="skip" href="#content">Skip to the dashboard</a>
+<div class="banner">All data is synthetic: a fictional brand generated by code. Not Confido's data or schema.</div>
+<div id="nav"></div>
+<div class="wrap">
+ <div class="head"><h1>Deduction dashboard</h1><p>Three views for three people. Filter by retailer, reason and month; click a retailer bar to focus on it. Everything recalculates in your browser from data exported from the warehouse.</p>
+  <div class="seg" role="tablist" aria-label="Dashboard views" id="views">
+   <button role="tab" data-page="sales">VP Sales<small>Retailer performance</small></button>
+   <button role="tab" data-page="ops">AR manager<small>Deduction operations</small></button>
+   <button role="tab" data-page="cfo">CFO<small>Cash impact</small></button></div></div>
+ <button class="btn ghost fbtn" id="ftoggle" aria-expanded="false">Filters</button>
+ <div class="layout"><aside class="card filters" id="filters" aria-label="Filters"></aside>
+  <section id="content" aria-live="polite"><div class="skel"></div></section></div>
+</div>
+<footer class="site"><div class="in"><span>All data is synthetic. Not Confido's data or schema.</span><span><a href="https://github.com/jainamh029/cpg-deduction-analytics">Source and full write-up on GitHub</a></span></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script><script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script><script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+<script src="../assets/common.js"></script>
+<script>
+"use strict";
+mountChrome("dashboard");
+const PAGES = {sales: "Retailer performance", ops: "Deduction operations", cfo: "Cash impact"};
+let D = null;
+const st = {page: "sales", retailers: new Set(), reasons: new Set(), from: "", to: ""};
+const $ = id => document.getElementById(id), content = $("content");
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const toObjects = cube => cube.rows.map(r => Object.fromEntries(cube.cols.map((c, i) => [c, r[i]])));
+const sum = (xs, f) => xs.reduce((a, x) => a + (f(x) || 0), 0), div = (a, b) => (b ? a / b : null);
+const money = v => v == null || isNaN(v) ? "n/a" : (v < 0 ? "-" : "") + (Math.abs(v) >= 1e6 ? "$" + (Math.abs(v) / 1e6).toFixed(1) + "M" : Math.abs(v) >= 1e3 ? "$" + (Math.abs(v) / 1e3).toFixed(0) + "K" : "$" + Math.abs(v).toFixed(0));
+const pct = (v, d = 1) => v == null || isNaN(v) ? "n/a" : (v * 100).toFixed(d) + "%";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const label = c => c.replace(/_/g, " ").replace(/^./, m => m.toUpperCase());
+const median = xs => { const s = [...xs].sort((a, b) => a - b), n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null; };
+const wrapTitle = t => { const out = []; let line = ""; for (const w of t.split(" ")) { if ((line + " " + w).length > 82) { out.push(line); line = w; } else line = line ? line + " " + w : w; } out.push(line); return out; };
+const fR = x => st.retailers.has(x.r), fC = x => st.reasons.has(x.c), fM = x => x.m >= st.from && x.m <= st.to;
+const nameOf = id => D.names[id], idOf = n => +Object.keys(D.names).find(k => D.names[k] === n);
+const views = [];
+
+function card(extraClass = "") { const d = document.createElement("div"); d.className = "card cc fade " + extraClass; content.appendChild(d); return d; }
+function chart(spec, hint, focusable) {
+  const c = card(); if (hint) c.insertAdjacentHTML("beforeend", `<p class="hint">${esc(hint)}</p>`);
+  const el = document.createElement("div"); c.appendChild(el);
+  vegaEmbed(el, {$schema: "https://vega.github.io/schema/vega-lite/v5.json", width: "container", autosize: {type: "fit", contains: "padding"}, config: vegaTheme(), ...spec,
+    title: {text: wrapTitle(spec.title), anchor: "start", fontSize: 14}}, {actions: false}).then(r => {
+      if (!focusable) return;
+      r.view.addEventListener("click", (_, item) => { if (item && item.datum && item.datum.name) focus(idOf(item.datum.name)); });
+      r.view.addEventListener("mouseover", (_, item) => { el.style.cursor = item && item.datum && item.datum.name ? "pointer" : "default"; });
+    });
+}
+function kpis(items) {
+  const d = document.createElement("div"); d.className = "kpis fade";
+  d.innerHTML = items.map(([l, v, hot]) => `<div class="card kpi ${hot ? "hot" : ""}"><small>${esc(l)}</small><b class="num" data-final="${esc(v)}">${esc(v)}</b></div>`).join("");
+  content.appendChild(d); d.querySelectorAll(".num").forEach(countUp);
+}
+function note(t) { content.insertAdjacentHTML("beforeend", `<p class="note fade">${t}</p>`); }
+function empty(t) { content.insertAdjacentHTML("beforeend", `<div class="card empty fade">${esc(t)}</div>`); }
+function table(title, cols, rows, align, csvName) {
+  const wrap = card("tblwrap"); wrap.innerHTML = `<div class="tblhead"><h3>${esc(title)}</h3><button class="btn ghost" style="padding:.35rem .8rem;font-size:.82rem">Download CSV</button></div><div class="scroll"><table><thead><tr></tr></thead><tbody></tbody></table></div>`;
+  const head = wrap.querySelector("tr"), body = wrap.querySelector("tbody"); let sortCol = -1, dir = 1, data = rows.map(r => r.map(c => (typeof c === "object" && c !== null ? c : {t: c, v: c})));
+  const draw = () => { body.innerHTML = data.map(r => `<tr>${r.map((c, i) => `<td class="${align[i] || ""}">${esc(c.t)}</td>`).join("")}</tr>`).join(""); };
+  cols.forEach((c, i) => { const th = document.createElement("th"); th.textContent = c; th.className = align[i] || ""; th.tabIndex = 0;
+    const go = () => { dir = sortCol === i ? -dir : 1; sortCol = i; data.sort((a, b) => (a[i].v > b[i].v ? 1 : a[i].v < b[i].v ? -1 : 0) * dir); head.querySelectorAll("th").forEach((x, j) => x.setAttribute("aria-sort", j === i ? (dir > 0 ? "ascending" : "descending") : "none")); draw(); };
+    th.onclick = go; th.onkeydown = e => { if (e.key === "Enter") go(); }; head.appendChild(th); });
+  wrap.querySelector("button").onclick = () => { const csv = [cols, ...data.map(r => r.map(c => c.v))].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type: "text/csv"})); a.download = csvName; a.click(); };
+  draw();
+}
+function bars(rows, valueField, fmt, title, highlight, hint) {
+  const hot = css("--chart-hot"), mute = css("--chart-b");
+  chart({data: {values: rows}, mark: {type: "bar", cornerRadiusEnd: 3}, height: Math.max(130, 26 * rows.length), title,
+    encoding: {y: {field: "name", type: "nominal", sort: "-x", title: null, axis: {labelLimit: 170, labelOverlap: false}}, x: {field: valueField, type: "quantitative", axis: {format: fmt}, title: null},
+      color: {condition: {test: `datum.name === '${highlight}'`, value: hot}, value: mute}, tooltip: [{field: "name"}, {field: valueField, format: fmt}]}}, hint || "Click a bar to focus on that retailer.", true);
+}
+
+// ------------------------------------------------------------------ views
+function sales() {
+  note(`For the VP Sales. Date filter = <b>invoice month</b> (cohort basis: a deduction counts toward the month of its invoice). Invoices from the last 4 months before ${D.meta.as_of} are incomplete, so the overall rate is understated and the trend excludes them.`);
+  const gross = D.gross.filter(x => fR(x) && fM(x)), coh = D.cohort.filter(x => fR(x) && fC(x) && fM(x));
+  const G = sum(gross, x => x.gross), Dd = sum(coh, x => x.amt), Rc = sum(coh, x => x.rec);
+  kpis([["Gross invoiced", money(G)], ["Deduction rate", pct(div(Dd, G)), true], ["Net revenue after deductions", money(G - Dd + Rc)], ["Recovery rate", pct(div(Rc, Dd)), true]]);
+  const per = [...st.retailers].map(r => {
+    const g = gross.filter(x => x.r === r), c = coh.filter(x => x.r === r), gr = sum(g, x => x.gross), dd = sum(c, x => x.amt);
+    return {id: r, name: nameOf(r), gross: gr, ded: dd, rate: div(dd, gr), rec: div(sum(c, x => x.rec), dd), late: div(sum(g, x => x.late_sum), sum(g, x => x.late_w))};
+  }).filter(p => p.gross > 0).sort((a, b) => b.rate - a.rate);
+  if (!per.length) return empty("No invoices match these filters.");
+  bars(per.map(p => ({name: p.name, rate: p.rate})), "rate", ".1%", `${per[0].name} has the highest deduction rate at ${pct(per[0].rate)}, against ${pct(div(Dd, G))} for the selected portfolio`, per[0].name);
+  const months = [...new Set(gross.filter(x => x.mature).map(x => x.m))].sort(), trend = [];
+  for (const r of st.retailers) for (const m of months) {
+    const g = sum(gross.filter(x => x.r === r && x.m === m), x => x.gross);
+    if (g) trend.push({retailer: nameOf(r), month: m + "-01", rate: sum(coh.filter(x => x.r === r && x.m === m), x => x.amt) / g});
+  }
+  const half = Math.ceil(months.length / 2), portfolio = ms => div(sum(coh.filter(x => ms.includes(x.m)), x => x.amt), sum(gross.filter(x => ms.includes(x.m)), x => x.gross));
+  let tt = "Not enough mature months in this range to compare halves of the period";
+  if (months.length >= 2) { const a = portfolio(months.slice(0, half)), b = portfolio(months.slice(half)), w = b - a > 0.0005 ? "rose" : a - b > 0.0005 ? "fell" : "held steady"; tt = `Portfolio deduction rate ${w}: ${pct(a)} in the first half of the period vs ${pct(b)} in the second (mature months only)`; }
+  if (trend.length) chart({data: {values: trend}, mark: {type: "line", strokeWidth: 2}, height: 320, title: tt,
+    encoding: {x: {field: "month", type: "temporal", title: null}, y: {field: "rate", type: "quantitative", axis: {format: ".0%"}, title: null}, color: {field: "retailer", type: "nominal", legend: {title: null, symbolType: "stroke"}},
+      tooltip: [{field: "retailer"}, {field: "month", type: "temporal", format: "%b %Y"}, {field: "rate", format: ".1%"}]}}, "One line per selected retailer, mature months only.");
+  const late = per.filter(p => p.late != null).sort((a, b) => b.late - a.late);
+  if (late.length) bars(late.map(p => ({name: p.name, late: p.late})), "late", ".0f", `${late[0].name} pays furthest past due: ${late[0].late.toFixed(0)} days after the due date on average, versus a median of ${median(late.map(p => p.late)).toFixed(0)} days across retailers`, late[0].name, "Days past due, weighted by amount paid. Click a bar to focus.");
+  table("Retailer scorecard", ["Retailer", "Gross", "Deductions", "Deduction rate", "Recovery rate", "Days past due"],
+    per.map(p => [p.name, {t: money(p.gross), v: p.gross}, {t: money(p.ded), v: p.ded}, {t: pct(p.rate), v: p.rate}, {t: pct(p.rec), v: p.rec ?? -1}, {t: p.late == null ? "n/a" : p.late.toFixed(1), v: p.late ?? -1}]), ["", "n", "n", "n", "n", "n"], "retailer_scorecard.csv");
+}
+
+function ops() {
+  note("For the AR manager. Date filter = <b>deduction month</b>. Win rate counts resolved disputes only (pending excluded); mean days to resolve covers resolved disputes only, so it leans toward fast outcomes.");
+  const ded = D.deductions.filter(x => fR(x) && fC(x) && fM(x)), resolved = sum(ded, x => x.resolved);
+  kpis([["Open deduction balance", money(sum(ded, x => x.open_amt)), true], ["Open items", sum(ded, x => x.open_n).toLocaleString()], ["Dispute win rate", pct(div(sum(ded, x => x.wins), resolved))],
+        ["Mean days to resolve", (v => v == null ? "n/a" : v.toFixed(0))(div(sum(ded, x => x.days_sum), sum(ded, x => x.days_n))), true]]);
+  const open = D.open.filter(x => fR(x) && fC(x) && fM(x));
+  if (!open.length) empty("No open deductions match these filters.");
+  else {
+    const agg = {}; for (const x of open) agg[x.b + "|" + x.c] = (agg[x.b + "|" + x.c] || 0) + x.amt;
+    const values = Object.entries(agg).map(([k, v]) => ({bucket: k.split("|")[0], reason: label(k.split("|")[1]), amt: v}));
+    const oldest = values.map(v => v.bucket).sort().pop(), total = sum(values, v => v.amt), old = sum(values.filter(v => v.bucket === oldest), v => v.amt);
+    chart({data: {values}, mark: {type: "bar", cornerRadiusEnd: 2}, height: 300, title: `${money(old)} of the ${money(total)} open balance sits in the oldest age bucket (${oldest} days)`,
+      encoding: {x: {field: "bucket", type: "ordinal", title: "Days since deduction", axis: {labelAngle: 0}}, y: {field: "amt", type: "quantitative", aggregate: "sum", axis: {format: "$~s"}, title: null},
+        color: {field: "reason", type: "nominal", legend: {title: "Reason"}}, tooltip: [{field: "bucket"}, {field: "reason"}, {field: "amt", aggregate: "sum", format: "$,.0f"}]}}, "Open balance by age and reason.");
+  }
+  const mix = [...st.reasons].map(c => { const g = ded.filter(x => x.c === c); return {reason: label(c), dispute: div(sum(g, x => x.disp), sum(g, x => x.amt)), win: div(sum(g, x => x.wins), sum(g, x => x.resolved))}; })
+    .filter(m => m.win != null && m.dispute != null).sort((a, b) => b.win - a.win);
+  if (mix.length) {
+    const top = [...mix].sort((a, b) => (b.win - b.dispute) - (a.win - a.dispute))[0], A = css("--chart-a"), B = css("--chart-b");
+    chart({data: {values: mix.flatMap(m => [{reason: m.reason, measure: "Share of dollars disputed", rate: m.dispute}, {reason: m.reason, measure: "Disputes won (full or partial)", rate: m.win}])}, mark: {type: "bar", cornerRadiusEnd: 3}, height: 300,
+      title: `${top.reason} deductions win ${pct(top.win, 0)} of disputes, yet only ${pct(top.dispute, 0)} of their dollars are disputed`,
+      encoding: {x: {field: "reason", type: "nominal", title: null, sort: mix.map(m => m.reason), axis: {labelAngle: -20}}, xOffset: {field: "measure"}, y: {field: "rate", type: "quantitative", axis: {format: "%"}, title: null},
+        color: {field: "measure", type: "nominal", scale: {domain: ["Share of dollars disputed", "Disputes won (full or partial)"], range: [B, A]}, legend: {orient: "top", title: null}}, tooltip: [{field: "reason"}, {field: "measure"}, {field: "rate", format: ".1%"}]}},
+      "High win rate with a low dispute rate marks under-invested recovery (win rate is measured on disputed deductions only).");
+  }
+  const lag = {}; for (const x of D.lag.filter(x => fR(x) && fC(x) && fM(x))) { const l = lag[x.b] || (lag[x.b] = {resolved: 0, wins: 0}); l.resolved += x.resolved; l.wins += x.wins; }
+  const co = Object.entries(lag).filter(([, v]) => v.resolved).sort().map(([b, v]) => ({bucket: b, win: v.wins / v.resolved}));
+  if (co.length >= 2) chart({data: {values: co}, mark: {type: "bar", color: css("--chart-a"), cornerRadiusEnd: 3}, height: 260,
+    title: `Disputes filed ${co[0].bucket} days after the deduction win ${pct(co[0].win, 0)}; those filed ${co[co.length - 1].bucket} days after win ${pct(co[co.length - 1].win, 0)}`,
+    encoding: {x: {field: "bucket", type: "ordinal", title: "Days from deduction to filing", axis: {labelAngle: 0}}, y: {field: "win", type: "quantitative", axis: {format: "%"}, title: null}, tooltip: [{field: "bucket"}, {field: "win", format: ".1%"}]}},
+    "The filing-speed effect is built into the synthetic data, so it demonstrates the analysis, not real behaviour.");
+  const wl = D.worklist.filter(x => fR(x) && fC(x) && x.d.slice(0, 7) >= st.from && x.d.slice(0, 7) <= st.to).slice(0, 50);
+  if (!wl.length) return empty("Nothing to work with these filters.");
+  table("Worklist: top 50 open, never-disputed deductions by expected recovery", ["Deduction", "Retailer", "Reason", "Deducted (month)", "Age (days)", "Bucket", "Amount", "Expected recovery"],
+    wl.map(x => [x.id, nameOf(x.r), label(x.c), x.d, x.age, x.b, {t: money(x.amt), v: x.amt}, {t: money(x.exp), v: x.exp ?? 0}]), ["n", "", "", "", "n", "", "n", "n"], "worklist.csv");
+}
+
+function cfo() {
+  note("For the CFO. Date filter = <b>deduction month</b>. The forecast covers all reasons and ignores the reason filter. Recoverable dollars are a range: they depend on assumed realization factors and on dispute-selection bias that real data would have.");
+  const ded = D.deductions.filter(x => fR(x) && fC(x) && fM(x)), cand = D.candidates.filter(x => fR(x) && fC(x) && fM(x));
+  const fac = Object.fromEntries(D.scenarios.map(s => [s.scenario, s.factor])), W = D.meta.windows, mid = W[Math.floor(W.length / 2)];
+  const rec = (w, s) => sum(cand.filter(x => x.w <= w), x => x.exp) * fac[s];
+  kpis([["Cash tied up in open deductions", money(sum(ded, x => x.open_amt)), true], [`Recoverable (${mid}-day window, base case)`, money(rec(mid, "base"))], ["Deducted, net of recoveries", money(sum(ded, x => x.amt) - sum(ded, x => x.rec)), true]]);
+  const grid = W.flatMap(w => D.scenarios.map(s => ({window: String(w), scenario: s.scenario, amt: rec(w, s.scenario)}))), order = D.scenarios.map(s => s.scenario);
+  chart({data: {values: grid}, mark: {type: "bar", cornerRadiusEnd: 3}, height: 300,
+    title: `Base case: ${money(rec(mid, "base"))} is recoverable from never-disputed deductions within ${mid} days (${money(rec(mid, "low"))} to ${money(rec(mid, "high"))} across scenarios)`,
+    encoding: {x: {field: "window", type: "ordinal", sort: W.map(String), title: "Dispute window (days)", axis: {labelAngle: 0}}, xOffset: {field: "scenario", sort: order}, y: {field: "amt", type: "quantitative", axis: {format: "$~s"}, title: null},
+      color: {field: "scenario", type: "nominal", sort: order, scale: {range: [css("--chart-b"), css("--chart-a"), css("--chart-hot")]}, legend: {title: "Scenario", orient: "top"}}, tooltip: [{field: "window"}, {field: "scenario"}, {field: "amt", format: "$,.0f"}]}},
+    "Expected recovery at historical win rates, scaled by the realization factor of each scenario.");
+  const byR = [...st.retailers].map(r => ({name: nameOf(r), amt: sum(ded.filter(x => x.r === r), x => x.open_amt)})).filter(x => x.amt > 0).sort((a, b) => b.amt - a.amt).slice(0, 10);
+  if (byR.length) bars(byR, "amt", "$~s", `${byR[0].name} holds the largest open balance: ${money(byR[0].amt)} of cash tied up`, byR[0].name);
+  const hist = {}; for (const x of D.deductions.filter(x => fR(x) && fM(x) && !x.burn)) hist[x.m] = (hist[x.m] || 0) + x.amt;
+  const fwd = {}; for (const x of D.forecast.filter(fR)) { const f = fwd[x.m] || (fwd[x.m] = {hw: 0, p10: 0, p90: 0}); f.hw += x.hw; f.p10 += x.p10; f.p90 += x.p90; }
+  const fm = Object.keys(fwd).sort();
+  if (!Object.keys(hist).length || !fm.length) return empty("No forecast for these filters.");
+  const yearAgo = m => (+m.slice(0, 4) - 1) + m.slice(4), prior = sum(D.deductions.filter(x => st.retailers.has(x.r) && fm.map(yearAgo).includes(x.m)), x => x.amt);
+  const total = sum(fm, m => fwd[m].hw), hm = Object.keys(hist).sort(), last = hm[hm.length - 1], A = css("--chart-a"), B = css("--chart-b");
+  const actual = hm.map(m => ({month: m + "-01", value: hist[m]})), proj = [{month: last + "-01", value: hist[last]}, ...fm.map(m => ({month: m + "-01", value: fwd[m].hw}))], band = fm.map(m => ({month: m + "-01", lo: fwd[m].p10, hi: fwd[m].p90}));
+  chart({title: `Deductions are forecast at ${money(total)} over the next 3 months (80% band ${money(sum(fm, m => fwd[m].p10))} to ${money(sum(fm, m => fwd[m].p90))}), versus ${money(prior)} in the same months last year`, height: 320,
+    layer: [{data: {values: actual}, mark: {type: "line", color: B, strokeWidth: 2}, encoding: {x: {field: "month", type: "temporal", title: null}, y: {field: "value", type: "quantitative", axis: {format: "$~s"}, title: null}, tooltip: [{field: "month", type: "temporal", format: "%b %Y"}, {field: "value", format: "$,.0f"}]}},
+            {data: {values: proj}, mark: {type: "line", color: A, strokeWidth: 2.5, strokeDash: [6, 3]}, encoding: {x: {field: "month", type: "temporal"}, y: {field: "value", type: "quantitative"}}},
+            {data: {values: band}, mark: {type: "area", opacity: 0.2, color: A}, encoding: {x: {field: "month", type: "temporal"}, y: {field: "lo", type: "quantitative"}, y2: {field: "hi"}}}]},
+    "Grey: actual. Green dashed: Holt-Winters forecast. Band: pooled backtest errors; measured out-of-sample coverage was below its nominal level, and the model is statistically tied with repeating last year.");
+}
+
+// ------------------------------------------------------------------ shell
+function focus(id) { st.retailers = new Set([id]); renderFilters(); render(); }
+function allRetailers() { return new Set(Object.keys(D.names).map(Number)); }
+function allReasons() { return new Set(D.deductions.map(x => x.c)); }
+function renderFilters() {
+  const months = [...new Set(D.gross.map(x => x.m))].sort(), reasons = [...allReasons()].sort();
+  $("filters").innerHTML = `<h3>Retailers <span><button class="mini" data-all="r">all</button><button class="mini" data-none="r">none</button></span></h3>` +
+    Object.entries(D.names).map(([id, n]) => `<label class="chk"><input type="checkbox" data-r="${id}" ${st.retailers.has(+id) ? "checked" : ""}> ${esc(n)}</label>`).join("") +
+    `<h3>Reason codes <span><button class="mini" data-all="c">all</button><button class="mini" data-none="c">none</button></span></h3>` +
+    reasons.map(c => `<label class="chk"><input type="checkbox" data-c="${c}" ${st.reasons.has(c) ? "checked" : ""}> ${esc(label(c))}</label>`).join("") +
+    `<h3>From month</h3><select id="from" aria-label="From month">${months.map(m => `<option ${m === st.from ? "selected" : ""}>${m}</option>`).join("")}</select>` +
+    `<h3>To month</h3><select id="to" aria-label="To month">${months.map(m => `<option ${m === st.to ? "selected" : ""}>${m}</option>`).join("")}</select>`;
+}
+function render() {
+  document.querySelectorAll("#views button").forEach(b => b.setAttribute("aria-selected", b.dataset.page === st.page));
+  const months = [...new Set(D.gross.map(x => x.m))].sort(), isAll = st.retailers.size === Object.keys(D.names).length && st.reasons.size === allReasons().size && st.from === months[0] && st.to === months[months.length - 1];
+  content.innerHTML = `<div class="chips fade"><span class="chip">${st.retailers.size} of ${Object.keys(D.names).length} retailers</span><span class="chip">${st.reasons.size} of ${allReasons().size} reasons</span><span class="chip">${st.from} to ${st.to}</span>${isAll ? "" : '<button class="chip reset" id="reset">Reset filters</button>'}</div>`;
+  if (!st.retailers.size || !st.reasons.size || st.from > st.to) return empty("Choose at least one retailer, one reason and a valid date range.");
+  ({sales, ops, cfo})[st.page]();
+}
+function reset() { const months = [...new Set(D.gross.map(x => x.m))].sort(); st.retailers = allRetailers(); st.reasons = allReasons(); st.from = months[0]; st.to = months[months.length - 1]; renderFilters(); render(); }
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.dataset.r) t.checked ? st.retailers.add(+t.dataset.r) : st.retailers.delete(+t.dataset.r);
+  else if (t.dataset.c) t.checked ? st.reasons.add(t.dataset.c) : st.reasons.delete(t.dataset.c);
+  else if (t.id === "from") st.from = t.value; else if (t.id === "to") st.to = t.value; else return;
+  render();
+});
+document.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.page) { st.page = t.dataset.page; history.replaceState(null, "", "#" + st.page); render(); window.scrollTo({top: 0, behavior: "smooth"}); }
+  if (t.id === "reset") reset();
+  if (t.id === "ftoggle") { const o = $("filters").classList.toggle("open"); t.setAttribute("aria-expanded", o); }
+  const key = t.dataset.all || t.dataset.none;
+  if (key) { const all = !!t.dataset.all; if (key === "r") st.retailers = all ? allRetailers() : new Set(); else st.reasons = all ? allReasons() : new Set(); renderFilters(); render(); }
+});
+document.addEventListener("themechange", render);
+fetch("data.json").then(r => r.json()).then(raw => {
+  D = {meta: raw.meta, names: Object.fromEntries(toObjects(raw.retailers).map(x => [x.id, x.name])), scenarios: toObjects(raw.scenarios)};
+  for (const k of ["deductions", "open", "lag", "gross", "cohort", "candidates", "worklist", "forecast"]) D[k] = toObjects(raw[k]);
+  const h = location.hash.slice(1); if (PAGES[h]) st.page = h;
+  reset();
+}).catch(err => { content.innerHTML = `<div class="card empty">Could not load data.json (${esc(err)}). If you opened this file directly, serve the folder instead: python -m http.server</div>`; });
+</script></body></html>
