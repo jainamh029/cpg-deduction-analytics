@@ -9,7 +9,7 @@
 
 **[Open the live site, with an interactive dashboard](https://jainamh029.github.io/cpg-deduction-analytics/)**
 
-**Status:** an independent audit ([docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md)) found and fixed false positives, messy-data gaps and
+**Status:** a self-audit (a second, adversarial review pass over the project, not a third-party review) ([docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md)) found and fixed false positives, messy-data gaps and
 overclaims; open items are listed there. CI (`make all` on Ubuntu, Python 3.11) passed on GitHub Actions on its first run after the audit; that is one run, not a track record. The dashboard is
 Streamlit; Metabase was **not built or verified** ([docs/METABASE_NOTES.md](docs/METABASE_NOTES.md)). Screenshots are real captures.
 
@@ -36,13 +36,11 @@ not evidence that a pattern exists.
 ## Finding 1: shortage recovery looks under-invested
 
 **Evidence.** Shortage deductions ({{ finding1.shortage_deducted|money }}) win **{{ finding1.shortage_win_rate|pct0 }}** of resolved disputes, the highest of any reason, but only
-**{{ finding1.shortage_dispute_rate|pct0 }}** of shortage dollars are disputed. Pricing, compliance, damage and "other" deductions are disputed {{ finding1.non_promo_peers_dispute_rate|pct0 }} of the time and win
-{{ finding1.non_promo_peers_win_rate|pct0 }}. (Promo is disputed even less, see finding 3, but wins only {{ finding3.promo_win_rate|pct0 }}.) {{ finding1.undisputed_items|int }} shortage deductions worth
+**{{ finding1.shortage_dispute_rate|pct0 }}** of shortage dollars are disputed. Pricing, compliance, damage and "other" deductions have {{ finding1.non_promo_peers_dispute_rate|pct0 }} of their dollars disputed and win {{ finding1.non_promo_peers_win_rate|pct0 }} of disputes. (Promo is disputed even less, see finding 3, but wins only {{ finding3.promo_win_rate|pct0 }}.) {{ finding1.undisputed_items|int }} shortage deductions worth
 {{ finding1.undisputed_amount|money }} were never disputed and are still open or written off; at historical rates that is up to **{{ finding1.potential_recovery|money }}** over {{ meta.months }} months
 (about {{ finding1.potential_recovery_per_year|money }} a year), an upper bound. **Selection caveat:** the {{ finding1.shortage_win_rate|pct0 }} is measured on deductions someone chose to dispute. In the selection-bias simulation the
 observed shortage win rate rises from {{ audit.bias_shortage_observed_none|pct0 }} to {{ audit.bias_shortage_observed_strong|pct0 }} while the true win probability of the undisputed ones stays near
-{{ audit.bias_shortage_true_strong|pct0 }}, so the gap between "wins when disputed" and "would win if disputed" can be large. Timing: disputes filed within {{ finding1.fast_bucket }} days win {{ finding1.fast_win_rate|pct0 }}, those filed
-after {{ finding1.slow_bucket }} days win {{ finding1.slow_win_rate|pct0 }}. *The generator builds the filing-lag effect in, so this demonstrates the analysis, not a real behavior.*
+{{ audit.bias_shortage_true_strong|pct0 }}, so the gap between "wins when disputed" and "would win if disputed" can be large. Timing: disputes filed {{ finding1.fast_bucket }} days after the deduction win {{ finding1.fast_win_rate|pct0 }}; those filed {{ finding1.slow_bucket }} days after win {{ finding1.slow_win_rate|pct0 }}. *The generator builds the filing-lag effect in, so this demonstrates the analysis, not a real behavior.*
 
 ![Dispute rate versus win rate by reason](docs/img/finding1_recovery_gap.png)
 
@@ -59,7 +57,7 @@ of all fines once the {{ finding2.unattributed_share|pct0 }} with no SKU referen
 
 ![Compliance fines by SKU](docs/img/finding2_fines_by_sku.png)
 
-**If this pattern appeared in real data**, it would point to an upstream compliance cause for two SKUs (labelling, packaging, routing) rather than a dispute problem: only {{ finding2.compliance_win_rate|pct0 }} of compliance-fine disputes are won.
+**If this pattern appeared in real data**, the concentration in two SKUs would point to a fixable upstream compliance cause (labelling, packaging, routing). Compliance disputes win only {{ finding2.compliance_win_rate|pct0 }} of the time, so disputing alone recovers just part of the cost.
 
 ## Finding 3: promo deductions spike after Q4 and are rarely disputed
 

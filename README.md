@@ -9,7 +9,7 @@
 
 **[Open the live site, with an interactive dashboard](https://jainamh029.github.io/cpg-deduction-analytics/)**
 
-**Status:** an independent audit ([docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md)) found and fixed false positives, messy-data gaps and
+**Status:** a self-audit (a second, adversarial review pass over the project, not a third-party review) ([docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md)) found and fixed false positives, messy-data gaps and
 overclaims; open items are listed there. CI (`make all` on Ubuntu, Python 3.11) passed on GitHub Actions on its first run after the audit; that is one run, not a track record. The dashboard is
 Streamlit; Metabase was **not built or verified** ([docs/METABASE_NOTES.md](docs/METABASE_NOTES.md)). Screenshots are real captures.
 
@@ -36,13 +36,11 @@ not evidence that a pattern exists.
 ## Finding 1: shortage recovery looks under-invested
 
 **Evidence.** Shortage deductions ($4.6M) win **80%** of resolved disputes, the highest of any reason, but only
-**17%** of shortage dollars are disputed. Pricing, compliance, damage and "other" deductions are disputed 35% of the time and win
-54%. (Promo is disputed even less, see finding 3, but wins only 48%.) 5,616 shortage deductions worth
+**17%** of shortage dollars are disputed. Pricing, compliance, damage and "other" deductions have 35% of their dollars disputed and win 54% of disputes. (Promo is disputed even less, see finding 3, but wins only 48%.) 5,616 shortage deductions worth
 $2.7M were never disputed and are still open or written off; at historical rates that is up to **$1.9M** over 36 months
 (about $619K a year), an upper bound. **Selection caveat:** the 80% is measured on deductions someone chose to dispute. In the selection-bias simulation the
 observed shortage win rate rises from 77% to 88% while the true win probability of the undisputed ones stays near
-75%, so the gap between "wins when disputed" and "would win if disputed" can be large. Timing: disputes filed within 0-14 days win 65%, those filed
-after 61+ days win 39%. *The generator builds the filing-lag effect in, so this demonstrates the analysis, not a real behavior.*
+75%, so the gap between "wins when disputed" and "would win if disputed" can be large. Timing: disputes filed 0-14 days after the deduction win 65%; those filed 61+ days after win 39%. *The generator builds the filing-lag effect in, so this demonstrates the analysis, not a real behavior.*
 
 ![Dispute rate versus win rate by reason](docs/img/finding1_recovery_gap.png)
 
@@ -59,7 +57,7 @@ of all fines once the 19% with no SKU reference are counted (a dilution of 13.4 
 
 ![Compliance fines by SKU](docs/img/finding2_fines_by_sku.png)
 
-**If this pattern appeared in real data**, it would point to an upstream compliance cause for two SKUs (labelling, packaging, routing) rather than a dispute problem: only 52% of compliance-fine disputes are won.
+**If this pattern appeared in real data**, the concentration in two SKUs would point to a fixable upstream compliance cause (labelling, packaging, routing). Compliance disputes win only 52% of the time, so disputing alone recovers just part of the cost.
 
 ## Finding 3: promo deductions spike after Q4 and are rarely disputed
 

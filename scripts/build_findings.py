@@ -62,6 +62,17 @@ def headline(con, years: float) -> dict:
             "sum(gross_amount) filter (where is_mature_month)) from metrics.m_retailer_month"
         ).fetchone()[0]
     )
+    oldest = con.execute(
+        "select aging_bucket, sum(open_amount) from metrics.m_deduction_detail where open_amount > 0 "
+        "group by 1 order by 1 desc limit 1"
+    ).fetchone()
+    h["open_balance"] = float(
+        con.execute("select sum(open_amount) from metrics.m_deduction_detail").fetchone()[0]
+    )
+    h["open_oldest_bucket"], h["open_oldest_share"] = (
+        oldest[0],
+        float(oldest[1]) / h["open_balance"],
+    )
     h["net_leakage"] = h["deductions"] - h["recovered"]
     grid = analysis(con, "10").set_index(["window_days", "scenario"])["recoverable_amount"]
     h["recoverable_180_low"], h["recoverable_180_base"], h["recoverable_180_high"] = (

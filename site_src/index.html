@@ -63,7 +63,7 @@
   <p class="sub">A brand ships product and invoices a retailer. The retailer pays, minus claims. Each claim can be accepted, written off, or disputed and sometimes won back. Few finance teams can see the whole picture.</p>
   <div class="grid3">
     <div class="card pcard reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg></div><h3>Many reasons, little visibility</h3><p>Shortages, promotion claims, compliance fines, pricing differences and damage all arrive as one short payment.</p></div>
-    <div class="card pcard reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Time works against you</h3><p>Old deductions are rarely won back, and dispute windows close. Most of the open balance is already months old.</p></div>
+    <div class="card pcard reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Time works against you</h3><p>Disputes have deadlines, so age matters. In this dataset, {{ headline.open_oldest_share|pct0 }} of the {{ headline.open_balance|money }} still open is in the oldest age bucket ({{ headline.open_oldest_bucket }} days).</p></div>
     <div class="card pcard reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-7"/></svg></div><h3>Numbers that do not add up</h3><p>One invoice has many deductions and each can have a dispute, so careless joins double-count dollars and mislead.</p></div>
   </div>
 </div></section>
@@ -87,11 +87,11 @@
     <button class="tab" role="tab" aria-selected="false" data-find="f3">Promo spike</button>
     <button class="tab" role="tab" aria-selected="false" data-find="f4">Forecast</button></div>
   <div class="card find" id="f1" role="tabpanel"><div><div class="kicker">Finding 1</div><h3>Shortage recovery looks under-invested</h3>
-    <div class="big-num num">{{ finding1.shortage_win_rate|pct0 }}</div><p>of resolved shortage disputes are won, yet only <strong>{{ finding1.shortage_dispute_rate|pct0 }}</strong> of shortage dollars are disputed. {{ finding1.undisputed_items|int }} shortage deductions worth {{ finding1.undisputed_amount|money }} were never disputed.</p>
+    <div class="big-num num">{{ finding1.shortage_win_rate|pct0 }}</div><p>of resolved shortage disputes are won, yet only <strong>{{ finding1.shortage_dispute_rate|pct0 }}</strong> of shortage dollars are disputed. {{ finding1.undisputed_items|int }} shortage deductions worth {{ finding1.undisputed_amount|money }} were never disputed and are still open or written off.</p>
     <p class="caveat">That win rate is measured on deductions someone chose to dispute. In a selection-bias simulation the same figure rises to {{ audit.bias_shortage_observed_strong|pct0 }} while the true win probability of the undisputed ones stays near {{ audit.bias_shortage_true_strong|pct0 }}.</p></div>
     <div><div id="chart-f1" class="chartbox"></div></div></div>
   <div class="card find" id="f2" role="tabpanel" hidden><div><div class="kicker">Finding 2</div><h3>One retailer's compliance fines run {{ finding2.ratio_to_peers|x1 }} its peers</h3>
-    <div class="big-num num">{{ finding2.top2_share_of_attributed|pct0 }}</div><p>of that retailer's fines that carry a SKU sit in just two SKUs ({{ finding2.top2_skus|join }}); {{ finding2.top2_share_of_all|pct0 }} once the {{ finding2.unattributed_share|pct0 }} with no SKU reference are counted. Compliance disputes win only {{ finding2.compliance_win_rate|pct0 }}, so this looks like an upstream fix, not a dispute problem.</p>
+    <div class="big-num num">{{ finding2.top2_share_of_attributed|pct0 }}</div><p>of that retailer's fines that carry a SKU sit in just two SKUs ({{ finding2.top2_skus|join }}); {{ finding2.top2_share_of_all|pct0 }} once the {{ finding2.unattributed_share|pct0 }} with no SKU reference are counted. Compliance disputes win only {{ finding2.compliance_win_rate|pct0 }} of the time, so disputing alone recovers part of the cost; the concentration in two SKUs points to a fixable upstream cause.</p>
     <p class="caveat">"Outlier" means at least twice the peer median. With no planted effect the largest ratio was {{ audit.null_max_fine_ratio|x2 }}; with it, the smallest was {{ audit.planted_min_fine_ratio|x2 }}. Separated, but narrowly.</p></div>
     <div><div id="chart-f2" class="chartbox"></div></div></div>
   <div class="card find" id="f3" role="tabpanel" hidden><div><div class="kicker">Finding 3</div><h3>Promo deductions spike after Q4 and are rarely disputed</h3>
@@ -110,7 +110,7 @@
 
 <section id="trust"><div class="wrap">
   <div class="kicker">Can you trust it?</div><h2>Built to be checked, and checked by an audit</h2>
-  <p class="sub">An independent audit tried to break the project. What it measured:</p>
+  <p class="sub">A self-audit (a second, adversarial pass; not a third-party review) tried to break the project. What it measured:</p>
   <div class="trust">
     <div class="card stat reveal"><small>Injected bugs caught by the test suite</small><b class="num" data-final="{{ audit.mutations_killed|int }} of {{ audit.mutations_total|int }}">{{ audit.mutations_killed|int }} of {{ audit.mutations_total|int }}</b></div>
     <div class="card stat hot reveal"><small>Datasets with no pattern that raise the shortage flag, after the fix</small><b class="num" data-final="{{ audit.null_p3_after_runs_flagged|int }} of {{ audit.runs|int }}">{{ audit.null_p3_after_runs_flagged|int }} of {{ audit.runs|int }}</b></div>

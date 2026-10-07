@@ -1,6 +1,6 @@
 # Audit report
 
-> Independent audit of the SYNTHETIC-data project "CPG Deduction & Trade Spend Analytics" (branch `audit`). All data is
+> Self-audit (a second, adversarial pass; not a third-party review) of the SYNTHETIC-data project "CPG Deduction & Trade Spend Analytics" (branch `audit`). All data is
 > synthetic; nothing here is about a real company. Evidence for every claim is in [AUDIT_LOG.md](AUDIT_LOG.md) (real command output),
 > `docs/audit/*.json` (raw sweep, bias and mutation results) and the commit named in each row. Design choices and test
 > changes are in [DECISIONS.md](DECISIONS.md) D42-D51.
@@ -44,7 +44,7 @@ Severity: **Critical** = would make a headline claim wrong or misleading to a sk
 | 18 | Low | "Metrics defined once" is enforced by regex heuristics | `tests/test_hygiene.py`; M22 caught by it (and by a data test) | **OPEN** |
 | 19 | Low | Many first-failing tests for join mutations are generic (the fixture's dbt data tests fail), not semantic assertions | mutation table | **OPEN** (observation) |
 | 20 | Low | Returns, credit memos, chargebacks are not representable (negative amounts rejected) | `test_credit_memos_and_returns_are_not_representable` | **WON'T FIX**: out of scope; limits every net-revenue claim (stated in METRICS.md and README) |
-| 21 | Low | GitHub Actions CI never run; Metabase never built; only macOS arm64 tested | n/a | **OPEN**: cannot be verified in this environment |
+| 21 | Low | GitHub Actions CI never run; Metabase never built; only macOS arm64 tested | CI passed on GitHub Actions (ubuntu-latest) after the push | **CI FIXED**; Metabase OPEN (never built); macOS arm64 plus one Ubuntu run are the only platforms tested |
 | 22 | Low | mutmut: 144 of 564 mutants sit in code only exercised by warehouse-dependent tests; 50 survivors remain (`compare_models` 19, `holt_winters` 18, `interval_coverage` 9) | AUDIT_LOG 1d | **OPEN** (reported, not chased) |
 
 Checked and found fine: dashboard page load (data functions 12-14 ms; Chrome until all charts render 0.4 s warm, 1.2 s cold, all under 3 s, so no caching change was needed); every dashboard query uses bound parameters (a hostile filter value never appears in SQL text and no table was touched); `dbt docs generate` works and every dbt model states a grain; no absolute paths, secrets or large files tracked; reproducibility from two fresh clones in a path with a space.

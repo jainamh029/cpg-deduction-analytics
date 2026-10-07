@@ -1,6 +1,6 @@
 # Audit log
 
-Real command output from the independent audit (branch `audit`). Data is synthetic.
+Real command output from the self-audit (branch `audit`). Data is synthetic.
 
 ## Audit 1a: mutation baseline (before any audit fix)
 

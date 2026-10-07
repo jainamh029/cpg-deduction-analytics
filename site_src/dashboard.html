@@ -163,7 +163,7 @@ function ops() {
   const lag = {}; for (const x of D.lag.filter(x => fR(x) && fC(x) && fM(x))) { const l = lag[x.b] || (lag[x.b] = {resolved: 0, wins: 0}); l.resolved += x.resolved; l.wins += x.wins; }
   const co = Object.entries(lag).filter(([, v]) => v.resolved).sort().map(([b, v]) => ({bucket: b, win: v.wins / v.resolved}));
   if (co.length >= 2) chart({data: {values: co}, mark: {type: "bar", color: css("--chart-a"), cornerRadiusEnd: 3}, height: 260,
-    title: `Disputes filed within ${co[0].bucket} days win ${pct(co[0].win, 0)}; those filed after ${co[co.length - 1].bucket} days win ${pct(co[co.length - 1].win, 0)}`,
+    title: `Disputes filed ${co[0].bucket} days after the deduction win ${pct(co[0].win, 0)}; those filed ${co[co.length - 1].bucket} days after win ${pct(co[co.length - 1].win, 0)}`,
     encoding: {x: {field: "bucket", type: "ordinal", title: "Days from deduction to filing", axis: {labelAngle: 0}}, y: {field: "win", type: "quantitative", axis: {format: "%"}, title: null}, tooltip: [{field: "bucket"}, {field: "win", format: ".1%"}]}},
     "The filing-speed effect is built into the synthetic data, so it demonstrates the analysis, not real behaviour.");
   const wl = D.worklist.filter(x => fR(x) && fC(x) && x.d.slice(0, 7) >= st.from && x.d.slice(0, 7) <= st.to).slice(0, 50);

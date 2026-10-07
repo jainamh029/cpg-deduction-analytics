@@ -102,8 +102,8 @@ def render(con, f: data.Filters) -> None:
             )
             .properties(
                 title=title(
-                    f"Disputes filed within {fast['filing_lag_bucket']} days win {pct(fast['win_rate'], 0)}; "
-                    f"those filed after {slow['filing_lag_bucket']} days win {pct(slow['win_rate'], 0)}"
+                    f"Disputes filed {fast['filing_lag_bucket']} days after the deduction win {pct(fast['win_rate'], 0)}; "
+                    f"those filed {slow['filing_lag_bucket']} days after win {pct(slow['win_rate'], 0)}"
                 ),
                 height=260,
             )

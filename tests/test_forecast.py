@@ -79,7 +79,7 @@ def test_every_fold_trains_only_on_months_before_its_origin(monkeypatch):
     monthly = synthetic_monthly(2)
     seen = []
 
-    def spy(name, fn):
+    def spy(fn):
         def wrapped(train, horizon):
             seen.append((len(train), train.copy()))
             return fn(train, horizon)
@@ -87,7 +87,7 @@ def test_every_fold_trains_only_on_months_before_its_origin(monkeypatch):
         return wrapped
 
     for name, fn in dict(model.MODELS).items():
-        monkeypatch.setitem(model.MODELS, name, spy(name, fn))
+        monkeypatch.setitem(model.MODELS, name, spy(fn))
     backtest(monthly)
     assert seen
     for length, train in seen:

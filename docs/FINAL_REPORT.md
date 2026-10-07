@@ -1,6 +1,6 @@
 # Final report (SYNTHETIC data project)
 
-> **Superseded in part by the independent audit:** see [AUDIT_REPORT.md](AUDIT_REPORT.md). Test counts, the "least confident" list and several statements below were written before the audit and are corrected there (for example, the suite is larger, the README is verified exhaustively, and the recoverable-dollar figure is now a range).
+> **Superseded in part by the self-audit (a second, adversarial pass; not a third-party review):** see [AUDIT_REPORT.md](AUDIT_REPORT.md). Test counts, the "least confident" list and several statements below were written before the audit and are corrected there (for example, the suite is larger, the README is verified exhaustively, and the recoverable-dollar figure is now a range).
 
 > All data is synthetic. Not Confido's data or schema. Command output behind every claim is in
 > [BUILD_LOG.md](BUILD_LOG.md); design choices are in [DECISIONS.md](DECISIONS.md).
@@ -16,29 +16,38 @@
 | 4. Ten analysis queries + PERFORMANCE.md | passed | `78d2857` |
 | 5. Forecast backtest | passed | `a707263` |
 | 6. Streamlit dashboard + real screenshots | passed | `d3292da` |
-| 7. CI file, hygiene tests, fresh-clone `make all` | passed (CI itself unverified) | `d02201f`, `6a60600` |
+| 7. CI file, hygiene tests, fresh-clone `make all` | passed (CI later verified on GitHub Actions, ubuntu-latest) | `d02201f`, `6a60600` |
 | 8. Findings memo README | passed | see `git log` (final commits) |
 
 No phase hit the 5-attempt limit; no `docs/BLOCKED.md` and no `blocked/*` branch exist. Several first attempts failed and
 were fixed in code or (where the test itself was wrong) with a written justification: D24 (hygiene test scope), D28 (pandas
 slice in the waterfall test), D29 (annotation placement), plus the `E501` lint-rule choice D13.
 
-## 2. Test counts (pytest collected, final run: **150 passed, 0 failed, 0 skipped**)
+## 2. Test counts (current suite; the original 150 grew during the self-audit)
 
-| File | Tests | Covers |
-|---|---|---|
-| `tests/test_generator.py` | 15 | determinism, scale, reconciliation, SKU null range, every planted pattern as a tolerance range |
-| `tests/test_validator.py` | 10 | clean load = 0 findings, dirty load = exactly the injected set, raw constraints reject bad rows |
-| `tests/test_models.py` | 11 | dbt build, mart totals = raw totals, no row inflation, unattributed bucket, dirty-source run |
-| `tests/test_metrics.py` | 23 | every metric vs hand-computed values on a 7-deduction fixture |
-| `tests/test_hygiene.py` | 29 | metrics defined once, analysis/dashboard code reuses them, no raw reads |
-| `tests/test_analysis.py` | 22 | all 10 queries run, documented, and match independent raw-table SQL |
-| `tests/test_forecast.py` | 9 | baseline hand values, no leakage, dates, output schema |
-| `tests/test_dashboard.py` | 13 | data functions vs SQL, filters, AppTest on every page, takeaway titles |
-| `tests/test_findings.py` | 7 | README = render(template, findings), numbers re-derived from raw, qualitative claims true |
-| `tests/test_repo_hygiene.py` | 9 | no absolute paths, secrets, large files, generated data; synthetic labels |
-| `tests/test_toolchain.py` | 2 | dbt connects and parses |
-| **Total** | **150** | plus 90 dbt data tests (not_null, unique, relationships, accepted_values, custom) in `dbt build` (116 nodes) |
+| File | Tests |
+|---|---|
+| `tests/test_analysis.py` | 22 |
+| `tests/test_audit_modes.py` | 17 |
+| `tests/test_dashboard.py` | 13 |
+| `tests/test_dashboard_robustness.py` | 23 |
+| `tests/test_findings.py` | 9 |
+| `tests/test_forecast.py` | 18 |
+| `tests/test_generator.py` | 15 |
+| `tests/test_hygiene.py` | 29 |
+| `tests/test_messy_conditions.py` | 15 |
+| `tests/test_metrics.py` | 23 |
+| `tests/test_models.py` | 11 |
+| `tests/test_null_pipeline.py` | 10 |
+| `tests/test_pipeline_robustness.py` | 10 |
+| `tests/test_repo_hygiene.py` | 9 |
+| `tests/test_site.py` | 3 |
+| `tests/test_site_export.py` | 5 |
+| `tests/test_toolchain.py` | 2 |
+| `tests/test_validator.py` | 10 |
+| **Total** | **244** |
+
+Plus 90 dbt data tests inside `dbt build` (116 nodes). What each file covers is in the file's docstring and in [AUDIT_REPORT.md](AUDIT_REPORT.md).
 
 ## 3. Planted patterns: target vs observed
 
@@ -59,7 +68,7 @@ Effect of the nullable SKU on pattern 1: detectable either way; counting unattri
 
 ## 4. Unverified or not done
 
-- **GitHub Actions CI: never run.** The workflow only mirrors `make all`; it is validated as YAML. Treat as unverified until the first push.
+- **GitHub Actions CI:** passed on its first real run (ubuntu-latest, Python 3.11) after the project was pushed; one run, not a track record.
 - **Metabase: never built.** No Docker or Java on the dev machine. [METABASE_NOTES.md](METABASE_NOTES.md) is a desk check labelled "not verified".
 - **Cross-platform:** everything ran on macOS arm64 with Python 3.11 from `uv`; Linux behaviour (including CI) is untested.
 - **Screenshots:** done (real headless Chrome captures, macOS). `make screenshots` needs Google Chrome and the optional `screenshots` extra, and is not part of `make all` or CI.
@@ -87,6 +96,6 @@ Effect of the nullable SKU on pattern 1: detectable either way; counting unattri
 2. **The findings are planted, not discovered.** Retailer A's fines, the Q4 promo spike, shortage recovery and even the win-rate-versus-filing-lag decline are built into the generator. The repo proves the pipeline can find them (and does so with realistic noise), not that the effects exist.
 3. **Hygiene tests are regex heuristics.** "Metrics are defined once" is enforced by pattern matching on SQL and Python text; a determined or careless author could re-derive a metric in a way the patterns miss (`tests/test_hygiene.py`).
 4. **The forecast comparison is statistically weak.** Seven overlapping origins, two models, one Holt-Winters specification (fixed a priori, never tuned): the 18.6% versus 18.9% MAPE gap is a tie, and retailer 5's poor result was not diagnosed.
-5. **CI and portability are unproven.** The workflow has never run; the dbt-views-embed-catalog-name behaviour, DuckDB version pinning (1.5.6) and Streamlit AppTest could behave differently on Linux or with other versions.
+5. **Portability is lightly tested.** CI has passed once on Ubuntu and everything else ran on macOS arm64; the dbt-views-embed-catalog-name behaviour, DuckDB version pinning (1.5.6) and Streamlit AppTest could behave differently on Linux or with other versions.
 
 Also worth knowing: the 4-month "maturity" rule and 3-month ramp-up are judgement calls; valid-vs-invalid is an outcome-based proxy (a lower bound on invalid); promo deductions are linked to promotions only at retailer-year level.
