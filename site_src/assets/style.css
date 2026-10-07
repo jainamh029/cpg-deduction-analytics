@@ -1,0 +1,36 @@
+/* Shared design system: Data-Dense Dashboard (blue data, amber highlight). Light and dark themes. */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+:root{
+  --primary:#1e40af;--primary-2:#3b82f6;--accent:#d97706;--bg:#f8fafc;--card:#fff;--ink:#0f172a;--muted:#475569;--soft:#e9eef6;--line:#dbe3ef;
+  --danger:#dc2626;--ok:#15803d;--shadow:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.05);--radius:12px;--chart-a:#2563eb;--chart-b:#94a3b8;--chart-hot:#d97706;
+  --font:'Fira Sans',system-ui,-apple-system,Segoe UI,sans-serif;--mono:'Fira Code',ui-monospace,Menlo,monospace;color-scheme:light
+}
+:root[data-theme=dark]{--primary:#60a5fa;--primary-2:#93c5fd;--accent:#fbbf24;--bg:#0b1220;--card:#111a2e;--ink:#e5ecf6;--muted:#9fb0c8;--soft:#18243d;--line:#243350;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.25);--chart-a:#60a5fa;--chart-b:#64748b;--chart-hot:#fbbf24;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font:16px/1.6 var(--font);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+a{color:var(--primary);text-underline-offset:3px}a:hover{color:var(--primary-2)}
+:focus-visible{outline:3px solid var(--primary-2);outline-offset:2px;border-radius:6px}
+.skip{position:absolute;left:-999px}.skip:focus{left:8px;top:8px;background:var(--card);padding:.5rem 1rem;z-index:100}
+.banner{background:var(--accent);color:#1c1917;font-size:.85rem;text-align:center;padding:.35rem 1rem;font-weight:500}
+nav.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav.top .in{max-width:80rem;margin:0 auto;display:flex;align-items:center;gap:1.2rem;padding:.6rem 1.2rem}
+.brand{display:flex;align-items:center;gap:.6rem;font-weight:700;color:var(--ink);text-decoration:none;letter-spacing:-.01em}
+.brand svg{width:28px;height:28px}.spacer{flex:1}
+nav.top a.link{color:var(--muted);text-decoration:none;font-weight:500;padding:.4rem .7rem;border-radius:8px;transition:background .15s,color .15s}
+nav.top a.link:hover,nav.top a.link[aria-current=page]{color:var(--ink);background:var(--soft)}
+.iconbtn{display:inline-grid;place-items:center;width:38px;height:38px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;cursor:pointer;transition:transform .15s,background .15s}
+.iconbtn:hover{background:var(--soft);transform:translateY(-1px)}.iconbtn svg{width:18px;height:18px}
+.btn{display:inline-flex;align-items:center;gap:.5rem;font:600 .95rem var(--font);padding:.7rem 1.2rem;border-radius:10px;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:transform .15s,box-shadow .15s,background .15s}
+.btn.primary{background:var(--primary);color:#fff;box-shadow:var(--shadow)}[data-theme=dark] .btn.primary{color:#0b1220}
+.btn.primary:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(30,64,175,.28);color:#fff}[data-theme=dark] .btn.primary:hover{color:#0b1220}
+.btn.ghost{background:var(--card);color:var(--ink);border-color:var(--line)}.btn.ghost:hover{background:var(--soft);color:var(--ink)}
+.btn svg{width:18px;height:18px}
+.wrap{max-width:80rem;margin:0 auto;padding:0 1.2rem}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}}
+footer.site{border-top:1px solid var(--line);margin-top:4rem;padding:2rem 0;color:var(--muted);font-size:.9rem}
+footer.site .in{max-width:80rem;margin:0 auto;padding:0 1.2rem;display:flex;flex-wrap:wrap;gap:.6rem 1.5rem;justify-content:space-between}
+@media (max-width:640px){nav.top .in{gap:.4rem;padding:.5rem .8rem}.brand span{display:none}nav.top a.link{padding:.4rem .5rem}}

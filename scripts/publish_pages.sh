@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 repo="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
-.venv/bin/python -m scripts.build_site --repo "$repo"
+.venv/bin/python -m scripts.build_site
 work="$(mktemp -d)"
 cp -R site/. "$work/"
 git -C "$work" init -q -b gh-pages

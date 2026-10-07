@@ -247,4 +247,4 @@ make screenshots           # optional: .venv/bin/pip install -e ".[screenshots]"
 4. Backtest forecasts on years of real history and report intervals with measured coverage.
 5. Verify CI on GitHub and, if Metabase is wanted, run the spike described in the Metabase notes.
 
-See also: [docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md), [docs/INTERVIEW_QA.md](docs/INTERVIEW_QA.md), [docs/DECISIONS.md](docs/DECISIONS.md), [docs/BUILD_LOG.md](docs/BUILD_LOG.md), [docs/FINAL_REPORT.md](docs/FINAL_REPORT.md), [PLAN.md](PLAN.md).
+See also: [docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md), [docs/DECISIONS.md](docs/DECISIONS.md), [docs/BUILD_LOG.md](docs/BUILD_LOG.md), [docs/FINAL_REPORT.md](docs/FINAL_REPORT.md), [PLAN.md](PLAN.md).

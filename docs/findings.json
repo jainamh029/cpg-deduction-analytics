@@ -316,6 +316,8 @@
     "clean_findings": {}
   },
   "audit": {
+    "mutations_total": 42,
+    "mutations_killed": 42,
     "runs": 20,
     "null_anomalies_before": 25.65,
     "null_anomalies_after": 3.1,
@@ -339,5 +341,43 @@
     "bias_shortage_observed_none": 0.7663708106241959,
     "bias_shortage_observed_strong": 0.8797018244439814,
     "bias_shortage_true_strong": 0.7453312714740706
-  }
+  },
+  "waterfall": [
+    {
+      "step": "Gross invoiced",
+      "amount": 463963689.63
+    },
+    {
+      "step": "Less: promo deductions",
+      "amount": -9981951.98
+    },
+    {
+      "step": "Less: shortage deductions",
+      "amount": -4582553.88
+    },
+    {
+      "step": "Less: pricing deductions",
+      "amount": -2826184.63
+    },
+    {
+      "step": "Less: compliance_fine deductions",
+      "amount": -2612791.88
+    },
+    {
+      "step": "Less: other deductions",
+      "amount": -1989586.57
+    },
+    {
+      "step": "Less: damage deductions",
+      "amount": -1831790.52
+    },
+    {
+      "step": "Plus: recovered via disputes",
+      "amount": 2212391.19
+    },
+    {
+      "step": "Net revenue after deductions",
+      "amount": 442351221.36
+    }
+  ]
 }

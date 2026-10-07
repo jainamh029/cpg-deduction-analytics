@@ -285,7 +285,10 @@ def audit_summary() -> dict:
     shortage = bias.groupby("level")[
         ["shortage_observed_win_rate", "shortage_true_win_prob_undisputed"]
     ].mean()
+    mutations = json.loads((audit / "mutation_final.json").read_text())
     return {
+        "mutations_total": len(mutations),
+        "mutations_killed": sum(m["status"] == "KILLED" for m in mutations),
         "runs": int(len(null_a)),
         "null_anomalies_before": float(null_b["p7_anomalies_flagged"].mean()),
         "null_anomalies_after": float(null_a["p7_anomalies_flagged"].mean()),
@@ -460,6 +463,7 @@ def main() -> None:
                (select count(*) from marts.fct_deductions) as deductions, (select count(*) from marts.fct_disputes) as disputes,
                (select count(*) from marts.dim_retailer) as retailers, (select count(*) from marts.dim_sku) - 1 as skus""",
     )
+    wf = analysis(con, "01")
     result = {
         "meta": {
             "as_of": cfg.end_date.isoformat(),
@@ -481,7 +485,10 @@ def main() -> None:
     result["forecast"] = forecast_summary(con)
     result["data_quality"] = data_quality(con)
     result["audit"] = audit_summary()
-    charts(result, analysis(con, "01"))
+    result["waterfall"] = [
+        {"step": s, "amount": float(a)} for s, a in zip(wf["step"], wf["amount"], strict=True)
+    ]
+    charts(result, wf)
     con.close()
     OUT.write_text(json.dumps(result, indent=2, default=float) + "\n")
     print(f"wrote {OUT.relative_to(ROOT)} and {len(list(IMG.glob('*.png')))} charts in docs/img")

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CPG Deduction Analytics: where retailer deductions drain revenue, and what can be won back</title>
+<meta name="description" content="A synthetic-data analytics project: find where a consumer-goods brand loses money to retailer deductions and how much is recoverable.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%231e40af%27/%3E%3Cpath d=%27M7 22l6-7 4 4 8-10%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272.6%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+ .hero{padding:4rem 0 2.5rem;background:radial-gradient(60rem 22rem at 80% -10%,color-mix(in srgb,var(--primary-2) 18%,transparent),transparent),radial-gradient(40rem 20rem at 0% 0%,color-mix(in srgb,var(--accent) 12%,transparent),transparent)}
+ .eyebrow{display:inline-flex;gap:.5rem;align-items:center;font:500 .8rem var(--mono);color:var(--primary);background:var(--soft);border:1px solid var(--line);padding:.25rem .7rem;border-radius:999px}
+ h1.big{font-size:clamp(2rem,4.6vw,3.4rem);line-height:1.1;letter-spacing:-.025em;margin:1rem 0;max-width:20ch}
+ h1.big em{font-style:normal;color:var(--primary)} .lede{font-size:1.2rem;color:var(--muted);max-width:46rem}
+ .cta{display:flex;flex-wrap:wrap;gap:.8rem;margin:1.6rem 0 2.2rem}
+ .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.9rem}
+ .stat{padding:1rem 1.1rem;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}.stat:hover{transform:translateY(-3px)}
+ .stat small{color:var(--muted);display:block;font-size:.82rem}.stat b{font:600 1.9rem var(--mono);letter-spacing:-.02em}
+ .stat::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary-2)}.stat.hot::after{background:var(--accent)}
+ section{padding:3.2rem 0}section h2{font-size:clamp(1.5rem,3vw,2.1rem);letter-spacing:-.02em;margin:.2rem 0 .4rem}
+ .kicker{font:500 .8rem var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:.08em}.sub{color:var(--muted);max-width:44rem;margin:0 0 1.6rem}
+ .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem}
+ .pcard{padding:1.2rem;transition:transform .2s,box-shadow .2s}.pcard:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(15,23,42,.12)}
+ .pcard h3{margin:.6rem 0 .3rem;font-size:1.05rem}.pcard p{margin:0;color:var(--muted);font-size:.95rem}
+ .ico{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;background:var(--soft);color:var(--primary)}.ico svg{width:22px;height:22px}
+ .steps{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:1.2rem;align-items:start}
+ @media(max-width:760px){.steps{grid-template-columns:1fr}}
+ .steplist{display:flex;flex-direction:column;gap:.4rem}
+ .step{display:flex;gap:.8rem;align-items:center;text-align:left;font:500 .95rem var(--font);padding:.7rem .8rem;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+ .step:hover{transform:translateX(3px)}.step[aria-selected=true]{border-color:var(--primary-2);background:var(--soft)}
+ .step i{font:600 .8rem var(--mono);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--primary);color:#fff;flex:none}[data-theme=dark] .step i{color:#0b1220}
+ .panel{padding:1.4rem}.panel h3{margin:.1rem 0 .5rem}.panel p{color:var(--muted)}.panel code{font:.85rem var(--mono);background:var(--soft);padding:.1rem .4rem;border-radius:6px}
+ .pipe{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-top:.8rem;font:500 .8rem var(--mono)}
+ .pipe span{background:var(--soft);border:1px solid var(--line);padding:.25rem .55rem;border-radius:7px}.pipe b{color:var(--muted)}
+ .tabs{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 1rem}
+ .tab{font:600 .9rem var(--font);padding:.55rem 1rem;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;transition:background .15s,color .15s}
+ .tab:hover{background:var(--soft)}.tab[aria-selected=true]{background:var(--primary);border-color:var(--primary);color:#fff}[data-theme=dark] .tab[aria-selected=true]{color:#0b1220}
+ .find{display:grid;grid-template-columns:1fr 1.25fr;gap:1.2rem;padding:1.3rem}.find[hidden]{display:none}
+ @media(max-width:860px){.find{grid-template-columns:1fr}}
+ .find h3{margin:0 0 .4rem;font-size:1.25rem}.find p{color:var(--muted);margin:.4rem 0}
+ .big-num{font:600 2.4rem var(--mono);color:var(--primary);letter-spacing:-.03em}.caveat{border-left:3px solid var(--accent);padding:.4rem .8rem;background:color-mix(in srgb,var(--accent) 9%,transparent);border-radius:0 8px 8px 0;font-size:.9rem;color:var(--ink)}
+ .chartbox{min-height:320px}.wide{padding:1.2rem;margin-bottom:1rem}
+ .trust{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem}.trust .stat b{font-size:1.6rem}
+ ul.limits{columns:2;gap:2rem;color:var(--muted);padding-left:1.1rem}@media(max-width:760px){ul.limits{columns:1}}ul.limits li{margin-bottom:.5rem;break-inside:avoid}
+ .vega-embed{width:100%;display:block}
+</style></head><body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="banner">All data is synthetic: a fictional brand generated by code. Not Confido's data or schema. The findings demonstrate a method on planted patterns.</div>
+<div id="nav"></div>
+<main id="main">
+<header class="hero"><div class="wrap">
+  <span class="eyebrow">Portfolio project &middot; synthetic data</span>
+  <h1 class="big">See where retailer deductions drain revenue, and <em>what can be won back</em></h1>
+  <p class="lede">Retailers routinely pay less than they are invoiced and subtract <strong>deductions</strong>. This project builds the analytics layer a consumer-goods finance team needs to see which retailers, which reasons, how old, and how much is realistically recoverable.</p>
+  <div class="cta"><a class="btn primary" href="dashboard/">Open the interactive dashboard <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn ghost" href="#how">How it works</a><a class="btn ghost" href="#findings">What it finds</a></div>
+  <div class="stats reveal">
+    <div class="card stat"><small>Gross invoiced ({{ meta.months }} months)</small><b class="num" data-final="{{ headline.gross|money }}">{{ headline.gross|money }}</b></div>
+    <div class="card stat hot"><small>Deducted by retailers</small><b class="num" data-final="{{ headline.deductions|money }}">{{ headline.deductions|money }}</b></div>
+    <div class="card stat"><small>Deduction rate (complete invoices)</small><b class="num" data-final="{{ headline.mature_deduction_rate|pct1 }}">{{ headline.mature_deduction_rate|pct1 }}</b></div>
+    <div class="card stat hot"><small>Recoverable now, 180-day window</small><b class="num" data-final="{{ headline.recoverable_180_low|money }}">{{ headline.recoverable_180_low|money }}</b><small>to {{ headline.recoverable_180_high|money }} depending on assumptions</small></div>
+  </div>
+</div></header>
+
+<section id="problem"><div class="wrap">
+  <div class="kicker">The problem</div><h2>Money leaves quietly, one short payment at a time</h2>
+  <p class="sub">A brand ships product and invoices a retailer. The retailer pays, minus claims. Each claim can be accepted, written off, or disputed and sometimes won back. Few finance teams can see the whole picture.</p>
+  <div class="grid3">
+    <div class="card pcard reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg></div><h3>Many reasons, little visibility</h3><p>Shortages, promotion claims, compliance fines, pricing differences and damage all arrive as one short payment.</p></div>
+    <div class="card pcard reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Time works against you</h3><p>Old deductions are rarely won back, and dispute windows close. Most of the open balance is already months old.</p></div>
+    <div class="card pcard reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-7"/></svg></div><h3>Numbers that do not add up</h3><p>One invoice has many deductions and each can have a dispute, so careless joins double-count dollars and mislead.</p></div>
+  </div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <div class="kicker">How the project solves it</div><h2>From raw records to decisions, in six checked steps</h2>
+  <p class="sub">Select a step. Each one is tested, and the whole build reproduces from a clean clone.</p>
+  <div class="steps">
+    <div class="steplist" role="tablist" aria-label="Pipeline steps" id="steplist"></div>
+    <div class="card panel" id="steppanel" role="tabpanel" aria-live="polite"></div>
+  </div>
+</div></section>
+
+<section id="findings"><div class="wrap">
+  <div class="kicker">What it finds (in the synthetic data)</div><h2>Where {{ headline.deductions|money }} went, and the three patterns that stand out</h2>
+  <p class="sub">The patterns were planted so the method can be checked; the point is that the pipeline finds them with realistic noise and does not find them when they are absent.</p>
+  <div class="card wide reveal"><div id="chart-waterfall" class="chartbox"></div></div>
+  <div class="tabs" role="tablist" aria-label="Findings" id="findtabs">
+    <button class="tab" role="tab" aria-selected="true" data-find="f1">Shortage recovery</button>
+    <button class="tab" role="tab" aria-selected="false" data-find="f2">Compliance fines</button>
+    <button class="tab" role="tab" aria-selected="false" data-find="f3">Promo spike</button>
+    <button class="tab" role="tab" aria-selected="false" data-find="f4">Forecast</button></div>
+  <div class="card find" id="f1" role="tabpanel"><div><div class="kicker">Finding 1</div><h3>Shortage recovery looks under-invested</h3>
+    <div class="big-num num">{{ finding1.shortage_win_rate|pct0 }}</div><p>of resolved shortage disputes are won, yet only <strong>{{ finding1.shortage_dispute_rate|pct0 }}</strong> of shortage dollars are disputed. {{ finding1.undisputed_items|int }} shortage deductions worth {{ finding1.undisputed_amount|money }} were never disputed.</p>
+    <p class="caveat">That win rate is measured on deductions someone chose to dispute. In a selection-bias simulation the same figure rises to {{ audit.bias_shortage_observed_strong|pct0 }} while the true win probability of the undisputed ones stays near {{ audit.bias_shortage_true_strong|pct0 }}.</p></div>
+    <div><div id="chart-f1" class="chartbox"></div></div></div>
+  <div class="card find" id="f2" role="tabpanel" hidden><div><div class="kicker">Finding 2</div><h3>One retailer's compliance fines run {{ finding2.ratio_to_peers|x1 }} its peers</h3>
+    <div class="big-num num">{{ finding2.top2_share_of_attributed|pct0 }}</div><p>of that retailer's fines that carry a SKU sit in just two SKUs ({{ finding2.top2_skus|join }}); {{ finding2.top2_share_of_all|pct0 }} once the {{ finding2.unattributed_share|pct0 }} with no SKU reference are counted. Compliance disputes win only {{ finding2.compliance_win_rate|pct0 }}, so this looks like an upstream fix, not a dispute problem.</p>
+    <p class="caveat">"Outlier" means at least twice the peer median. With no planted effect the largest ratio was {{ audit.null_max_fine_ratio|x2 }}; with it, the smallest was {{ audit.planted_min_fine_ratio|x2 }}. Separated, but narrowly.</p></div>
+    <div><div id="chart-f2" class="chartbox"></div></div></div>
+  <div class="card find" id="f3" role="tabpanel" hidden><div><div class="kicker">Finding 3</div><h3>Promo deductions spike after Q4 and are rarely disputed</h3>
+    <div class="big-num num">{{ finding3.median_spike_index|x1 }}</div><p>is the median January-February promo level versus spring-summer. Promo is the largest category ({{ finding3.promo_share_of_deductions|pct0 }} of deducted dollars) but only {{ finding3.promo_dispute_rate|pct1 }} of it is disputed.</p>
+    <p class="caveat">Many promo deductions are legitimate trade spend, so this is a prompt to match claims to agreements, not a savings estimate.</p></div>
+    <div><div id="chart-f3" class="chartbox"></div></div></div>
+  <div class="card find" id="f4" role="tabpanel" hidden><div><div class="kicker">Forecast and range</div><h3>An honest tie, and a range instead of a point</h3>
+    <div class="big-num num">{{ forecast.pooled_mape_hw|pct1 }} vs {{ forecast.pooled_mape_naive|pct1 }}</div><p>is the backtest error of the Holt-Winters model versus simply repeating last year. Resampling the forecast origins shows no reliable difference (p = {{ forecast.boot_p|num2 }}), so neither model is shown to be better.</p>
+    <p>Recoverable dollars are a range, <strong>{{ headline.recoverable_180_low|money }} to {{ headline.recoverable_180_high|money }}</strong>, because the true win rate of never-disputed deductions is unknown. The same method on data with no planted effect returns about {{ audit.null_recoverable_base_mean|money }}, so the figure reflects volume and rates, not proof of a pattern.</p></div>
+    <div class="grid3" style="grid-template-columns:1fr 1fr;align-content:start">
+      <div class="card stat"><small>Forecast, next 3 months</small><b class="num" data-final="{{ forecast.forward_total_hw|money }}">{{ forecast.forward_total_hw|money }}</b></div>
+      <div class="card stat hot"><small>Same months last year</small><b class="num" data-final="{{ forecast.same_months_last_year|money }}">{{ forecast.same_months_last_year|money }}</b></div>
+      <div class="card stat"><small>80% band covered (out of sample)</small><b class="num" data-final="{{ forecast.coverage_out_of_sample|pct0 }}">{{ forecast.coverage_out_of_sample|pct0 }}</b></div>
+      <div class="card stat hot"><small>Strong selection bias shrinks the estimate to</small><b class="num" data-final="{{ audit.bias_factor_strong|pct0 }}">{{ audit.bias_factor_strong|pct0 }}</b></div></div></div>
+</div></section>
+
+<section id="trust"><div class="wrap">
+  <div class="kicker">Can you trust it?</div><h2>Built to be checked, and checked by an audit</h2>
+  <p class="sub">An independent audit tried to break the project. What it measured:</p>
+  <div class="trust">
+    <div class="card stat reveal"><small>Injected bugs caught by the test suite</small><b class="num" data-final="{{ audit.mutations_killed|int }} of {{ audit.mutations_total|int }}">{{ audit.mutations_killed|int }} of {{ audit.mutations_total|int }}</b></div>
+    <div class="card stat hot reveal"><small>Datasets with no pattern that raise the shortage flag, after the fix</small><b class="num" data-final="{{ audit.null_p3_after_runs_flagged|int }} of {{ audit.runs|int }}">{{ audit.null_p3_after_runs_flagged|int }} of {{ audit.runs|int }}</b></div>
+    <div class="card stat reveal"><small>Anomaly cells flagged per no-pattern dataset (was {{ audit.null_anomalies_before|num1 }})</small><b class="num" data-final="{{ audit.null_anomalies_after|num1 }}">{{ audit.null_anomalies_after|num1 }}</b></div>
+    <div class="card stat hot reveal"><small>Planted patterns found across {{ audit.runs|int }} seeds (fine outlier)</small><b class="num" data-final="{{ audit.detected_p1|int }} of {{ audit.runs|int }}">{{ audit.detected_p1|int }} of {{ audit.runs|int }}</b></div>
+  </div>
+</div></section>
+
+<section id="limits"><div class="wrap">
+  <div class="kicker">Limits</div><h2>What this does not claim</h2>
+  <ul class="limits">
+    <li>The data are synthetic. The findings demonstrate a method; they say nothing about real retailers.</li>
+    <li>Dispute-selection bias is simulated, not measured. The recoverable range depends on assumptions.</li>
+    <li>The forecast shows no winner between the two models on {{ forecast.origins }} overlapping origins.</li>
+    <li>Returns, credit memos, chargebacks and partial-payment balances are not modelled.</li>
+    <li>Win rate and days to resolve cover resolved disputes only, so they lean toward fast outcomes.</li>
+    <li>This is a full-rebuild prototype: no incremental loads, access control or monitoring.</li>
+  </ul>
+  <p style="margin-top:1.5rem"><a class="btn primary" href="dashboard/">Explore the dashboard</a> <a class="btn ghost" href="https://github.com/jainamh029/cpg-deduction-analytics">Read the code and the full write-up on GitHub</a></p>
+</div></section>
+</main>
+<footer class="site"><div class="in"><span>All data is synthetic. Not Confido's data or schema.</span><span>Built with DuckDB, dbt, Python and Vega-Lite.</span></div></footer>
+
+<script type="application/json" id="data">__FINDINGS_JSON__</script>
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script><script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script><script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+<script src="assets/common.js"></script>
+<script>
+"use strict";
+mountChrome("home");
+const F = JSON.parse(document.getElementById("data").textContent);
+const money = v => (v < 0 ? "-" : "") + (Math.abs(v) >= 1e6 ? "$" + (Math.abs(v) / 1e6).toFixed(1) + "M" : "$" + (Math.abs(v) / 1e3).toFixed(0) + "K");
+const label = c => c.replace(/_/g, " ").replace(/^./, m => m.toUpperCase());
+
+const STEPS = [
+  ["Generate a test world", "A seeded generator creates a fictional brand's invoices, deductions, disputes and payments, with known, noisy patterns planted, plus a separate dirty copy with deliberate errors. Because the truth is known, every detector can be checked.", ["generator", "raw", "raw_dirty"]],
+  ["Validate before trusting", "A rule-based validator (keys, foreign keys, negative amounts, reconciliation, duplicates, date order) must report zero findings before anything is transformed; on the dirty copy it finds exactly the injected defects.", ["34 rules", "gate", "stop on any finding"]],
+  ["Model without double counting", "dbt layers (staging, intermediate, marts) aggregate every child table to its parent's grain before joining, so one invoice with many deductions and disputes can never multiply its dollars. Mart totals are tested against the raw totals.", ["staging", "intermediate", "marts"]],
+  ["Define each metric once", "Deduction rate, recovery rate, net revenue, open balance, ageing, days to resolve, win rate, valid vs invalid, payment lag and recoverable dollars are each defined in one place and reused by every query and chart.", ["metrics layer", "11 metrics", "one definition each"]],
+  ["Analyse and forecast", "Ten SQL analyses (waterfall, trends, ageing, filing-speed cohorts, anomaly flags, payment-lag drift, recoverable dollars) and a rolling-origin forecast backtest, each verified against independently written queries.", ["10 analyses", "backtest", "verified"]],
+  ["Show it, then try to break it", "A three-page dashboard for a VP of Sales, an AR manager and a CFO, plus an audit: injected bugs, datasets with no pattern, and a dispute-selection-bias simulation.", ["dashboard", "audit", "reproducible build"]]
+];
+const sl = document.getElementById("steplist"), sp = document.getElementById("steppanel");
+STEPS.forEach((s, i) => { const b = document.createElement("button"); b.className = "step"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", i === 0); b.innerHTML = `<i>${i + 1}</i><span>${s[0]}</span>`; b.onclick = () => showStep(i); sl.appendChild(b); });
+function showStep(i) {
+  [...sl.children].forEach((b, j) => b.setAttribute("aria-selected", j === i));
+  sp.innerHTML = `<h3>${STEPS[i][0]}</h3><p>${STEPS[i][1]}</p><div class="pipe">${STEPS[i][2].map(x => `<span>${x}</span>`).join("<b>&rarr;</b>")}</div>`;
+}
+showStep(0);
+sl.addEventListener("keydown", e => { const k = ["ArrowDown", "ArrowUp"].indexOf(e.key); if (k < 0) return; e.preventDefault(); const cur = [...sl.children].findIndex(b => b.getAttribute("aria-selected") === "true"); const n = (cur + (k ? -1 : 1) + STEPS.length) % STEPS.length; showStep(n); sl.children[n].focus(); });
+
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t));
+  ["f1", "f2", "f3", "f4"].forEach(id => document.getElementById(id).hidden = id !== t.dataset.find);
+  const box = document.getElementById("chart-" + t.dataset.find); if (box) drawAll();
+  document.getElementById(t.dataset.find).querySelectorAll(".num[data-final]").forEach(countUp);
+}));
+
+function embed(id, spec) {
+  const el = document.getElementById(id); if (!el || el.closest("[hidden]")) return;
+  const t = spec.title; delete spec.title;
+  vegaEmbed(el, {$schema: "https://vega.github.io/schema/vega-lite/v5.json", width: "container", autosize: {type: "fit", contains: "padding"}, config: vegaTheme(), title: {text: t, anchor: "start", fontSize: 14, subtitleColor: "#64748b"}, ...spec}, {actions: false});
+}
+function drawAll() {
+  const cs = getComputedStyle(document.documentElement), A = cs.getPropertyValue("--chart-a").trim(), B = cs.getPropertyValue("--chart-b").trim(), H = cs.getPropertyValue("--chart-hot").trim();
+  // Where the deductions go: floating waterfall by reason, then recoveries, then the net.
+  const steps = F.waterfall.filter(s => s.step.startsWith("Less")).map(s => ({name: label(s.step.replace("Less: ", "").replace(" deductions", "")), amt: -s.amount}));
+  let run = 0; const rows = steps.map(s => { const r = {name: s.name, lo: run, hi: run + s.amt, kind: "Deduction"}; run += s.amt; return r; });
+  const rec = F.headline.recovered; rows.push({name: "Won back", lo: run - rec, hi: run, kind: "Recovered"}); run -= rec; rows.push({name: "Net lost", lo: 0, hi: run, kind: "Net"});
+  embed("chart-waterfall", {data: {values: rows}, height: 300, title: `Of ${money(F.headline.gross)} invoiced, ${money(F.headline.deductions)} was deducted; ${money(F.headline.recovered)} was won back, leaving ${money(run)} net lost to date`,
+    mark: {type: "bar", cornerRadiusEnd: 3}, encoding: {x: {field: "name", type: "ordinal", sort: null, title: null, axis: {labelAngle: 0, labelLimit: 90}}, y: {field: "lo", type: "quantitative", axis: {format: "$~s"}, title: null}, y2: {field: "hi"},
+      color: {field: "kind", type: "nominal", scale: {domain: ["Deduction", "Recovered", "Net"], range: [A, "#10b981", H]}, legend: {orient: "top", title: null}}, tooltip: [{field: "name"}, {field: "lo", format: "$,.0f", title: "from"}, {field: "hi", format: "$,.0f", title: "to"}]}});
+  const reasons = Object.entries(F.finding1.by_reason).sort((a, b) => b[1].win_rate - a[1].win_rate);
+  embed("chart-f1", {data: {values: reasons.flatMap(([r, v]) => [{reason: label(r), measure: "Share of dollars disputed", v: v.dispute_rate}, {reason: label(r), measure: "Disputes won", v: v.win_rate}])}, height: 300,
+    title: `Shortage wins ${Math.round(F.finding1.shortage_win_rate * 100)}% of disputes but only ${Math.round(F.finding1.shortage_dispute_rate * 100)}% of its dollars are disputed`,
+    mark: {type: "bar", cornerRadiusEnd: 3}, encoding: {x: {field: "reason", type: "nominal", sort: reasons.map(r => label(r[0])), title: null, axis: {labelAngle: -25}}, xOffset: {field: "measure"}, y: {field: "v", type: "quantitative", axis: {format: "%"}, title: null},
+      color: {field: "measure", type: "nominal", scale: {domain: ["Share of dollars disputed", "Disputes won"], range: [B, A]}, legend: {orient: "top", title: null}}, tooltip: [{field: "reason"}, {field: "measure"}, {field: "v", format: ".1%"}]}});
+  embed("chart-f2", {data: {values: F.finding2.chart_rows}, height: 300, title: `Two SKUs carry ${Math.round(F.finding2.top2_share_of_all * 100)}% of ${F.finding2.retailer}'s compliance fines`,
+    mark: {type: "bar", cornerRadiusEnd: 3}, encoding: {y: {field: "label", type: "nominal", sort: "-x", title: null}, x: {field: "amount", type: "quantitative", axis: {format: "$~s"}, title: null},
+      color: {condition: [{test: `indexof(${JSON.stringify(F.finding2.top2_skus)}, datum.label) >= 0`, value: H}, {test: "datum.label === '(unattributed)'", value: B}], value: A}, tooltip: [{field: "label"}, {field: "amount", format: "$,.0f"}]}});
+  const m = F.finding3.monthly.map(x => ({month: x.month + "-01", amount: x.amount})), shade = m.filter(x => x.month.slice(5, 7) === "01").map(x => ({a: x.month, b: x.month.slice(0, 5) + "03-01"}));
+  embed("chart-f3", {height: 300, title: `Promo deductions spike every Jan-Feb (median ${F.finding3.median_spike_index.toFixed(1)}x the spring-summer level)`,
+    layer: [{data: {values: shade}, mark: {type: "rect", color: H, opacity: 0.18}, encoding: {x: {field: "a", type: "temporal", title: null}, x2: {field: "b"}}},
+      {data: {values: m}, mark: {type: "line", color: A, strokeWidth: 2.5, point: {size: 30}}, encoding: {x: {field: "month", type: "temporal", title: null}, y: {field: "amount", type: "quantitative", axis: {format: "$~s"}, title: null}, tooltip: [{field: "month", type: "temporal", format: "%b %Y"}, {field: "amount", format: "$,.0f"}]}}]});
+}
+document.addEventListener("themechange", drawAll);
+observeReveal(); drawAll();
+</script></body></html>

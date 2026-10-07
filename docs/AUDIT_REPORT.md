@@ -178,10 +178,6 @@ Fold construction (`forecast/model.py::backtest`): 7 origins (24..30 of 33 month
 
 Every number is now traced to an independent computation (109 placeholders) or a registered design constant (17); a wrong number or an unchecked typed number fails `verify_readme.py` (two negative-control tests). Rewording and sensitivity are described in finding 2, 3 and 10.
 
-## Audit 8: interview readiness
-
-[INTERVIEW_QA.md](INTERVIEW_QA.md): 15 questions with answers tied to files, queries and audit results, plus 5 questions the project cannot answer well and how to respond honestly.
-
 ## Update after the audit
 
 The project was pushed to GitHub on 2026-10-07 and the CI workflow ran for the first time (`make all` on ubuntu-latest, Python 3.11): it **passed**, which closes the Linux half of finding 21. Metabase remains unbuilt and macOS arm64 plus that one Ubuntu run are the only platforms tested.
