@@ -8,7 +8,7 @@
 > and `scripts/verify_readme.py` re-derives every number in it from the raw tables.
 
 **Status:** an independent audit ([docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md)) found and fixed false positives, messy-data gaps and
-overclaims; open items are listed there. The CI workflow is written but **unverified** (it has never run on GitHub). The dashboard is
+overclaims; open items are listed there. CI (`make all` on Ubuntu, Python 3.11) passed on GitHub Actions on 2026-10-07; that is one run, not a track record. The dashboard is
 Streamlit; Metabase was **not built or verified** ([docs/METABASE_NOTES.md](docs/METABASE_NOTES.md)). Screenshots are real captures.
 
 ## Headline (in the synthetic dataset)
@@ -235,7 +235,7 @@ make screenshots           # optional: .venv/bin/pip install -e ".[screenshots]"
 - **Messy data.** Duplicate deductions, re-filed disputes and recoveries above the deduction amount are flagged by the validator (and recoveries are capped in the model), but duplicates are not removed.
 - **Censoring.** Recent invoice months are incomplete (4-month maturity rule); days-to-resolve and win rate cover resolved disputes only, so they are biased toward quick outcomes; the first three deduction months are ramp-up.
 - **Forecast.** 33 usable months, 7 overlapping origins, two models, and no demonstrated winner.
-- **Not verified.** GitHub Actions CI (never run) and Metabase (never built).
+- **Not verified.** Metabase (never built). CI has passed once on Ubuntu; macOS arm64 is the only other platform tested.
 
 ## What I would do with real customer data
 

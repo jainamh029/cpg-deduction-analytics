@@ -1,6 +1,6 @@
 name: ci
 
-# UNVERIFIED: this workflow has not run on GitHub yet. It is validated only as YAML and mirrors `make all`.
+# Mirrors `make all`. First GitHub run (ubuntu-latest, Python 3.11) passed on 2026-10-07.
 on:
   push:
   pull_request:

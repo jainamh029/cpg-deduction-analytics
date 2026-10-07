@@ -182,6 +182,10 @@ Every number is now traced to an independent computation (109 placeholders) or a
 
 [INTERVIEW_QA.md](INTERVIEW_QA.md): 15 questions with answers tied to files, queries and audit results, plus 5 questions the project cannot answer well and how to respond honestly.
 
+## Update after the audit
+
+The project was pushed to GitHub on 2026-10-07 and the CI workflow ran for the first time (`make all` on ubuntu-latest, Python 3.11): it **passed**, which closes the Linux half of finding 21. Metabase remains unbuilt and macOS arm64 plus that one Ubuntu run are the only platforms tested.
+
 ## Open items
 
 Findings 12, 14, 15, 16, 17, 18, 19, 21, 22 and the real-world selection strength behind finding 2. Nothing was abandoned after five attempts; items are open because they need a business definition (14), different methods (15), real data (2, 17) or environments I do not have (21).
