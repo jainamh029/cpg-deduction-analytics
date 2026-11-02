@@ -1,6 +1,6 @@
 # Design decisions
 
-> All data in this project is synthetic. It is not Confido's data or schema.
+> All data in this project is synthetic. It is not any real company's data or schema.
 
 Short log of key choices and trade-offs. Newest entries at the bottom.
 

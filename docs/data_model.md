@@ -1,6 +1,6 @@
 # Data model (SYNTHETIC data)
 
-> All data is synthetic. Not Confido's data or schema. The raw tables are modelled on common CPG
+> All data is synthetic. Not any real company's data or schema. The raw tables are modelled on common CPG
 > receivables concepts and are an illustration only.
 
 ## Raw schema (ERD)

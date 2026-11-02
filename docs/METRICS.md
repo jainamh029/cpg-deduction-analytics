@@ -1,6 +1,6 @@
 # Metrics
 
-> All data is **synthetic**. Not Confido's data or schema.
+> All data is **synthetic**. Not any real company's data or schema.
 
 Every metric is implemented **once**, as a DuckDB SQL macro in the `metrics` schema
 ([macros/metric_definitions.sql](../macros/metric_definitions.sql)), created by a dbt `on-run-start`

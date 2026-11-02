@@ -54,7 +54,7 @@ def sidebar_filters(con) -> data.Filters | None:
 def main() -> None:
     st.set_page_config(page_title="CPG deduction analytics (synthetic data)", layout="wide")
     st.sidebar.title("Deduction analytics")
-    st.sidebar.warning("All data is SYNTHETIC. Not Confido's data or schema.")
+    st.sidebar.warning("All data is SYNTHETIC. Not any real company's data or schema.")
     keys = list(PAGES)
     default = st.query_params.get("page", "sales")
     index = keys.index(default) if default in keys else 0
